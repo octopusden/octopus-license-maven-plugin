@@ -7,4 +7,3 @@ jobs:
     uses: octopusden/octopus-base/.github/workflows/common-java-maven-build.yml@v2.0
     with:
       java-version: '8'
-    secrets: inherit
