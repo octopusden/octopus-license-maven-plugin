@@ -64,7 +64,7 @@ public abstract class AbstractLicenseMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.verbose", defaultValue = "${maven.verbose}" )
+    @Parameter( property = "license.verbose", defaultValue = "${maven.verbose}" )
     protected boolean verbose;
 
     /**
@@ -75,7 +75,7 @@ public abstract class AbstractLicenseMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.encoding", defaultValue = "${project.build.sourceEncoding}" )
+    @Parameter( property = "license.encoding", defaultValue = "${project.build.sourceEncoding}" )
     protected String encoding;
 
     /**

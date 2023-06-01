@@ -45,7 +45,7 @@ public abstract class AbstractDownloadLicensesMojo
      *
      * @since 1.14
      */
-    @Parameter(property = "license.failOnMissing", defaultValue = "false" )
+    @Parameter( property = "license.failOnMissing", defaultValue = "false" )
     boolean failOnMissing;
 
     /**
@@ -53,7 +53,7 @@ public abstract class AbstractDownloadLicensesMojo
      *
      * @since 1.14
      */
-    @Parameter(property = "license.failOnBlacklist", defaultValue = "false" )
+    @Parameter( property = "license.failOnBlacklist", defaultValue = "false" )
     boolean failOnBlacklist;
 
 

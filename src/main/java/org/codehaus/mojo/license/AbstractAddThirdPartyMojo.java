@@ -258,10 +258,10 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.includedLicenses")
+    @Parameter( property = "license.includedLicenses")
     IncludedLicenses includedLicenses;
 
-    @Parameter(property = "license.hiddenLicenses")
+    @Parameter( property = "license.hiddenLicenses")
     HiddenLicenses hiddenLicenses;
 
     Map<String, List<Dependency>> includedDependencies = new HashMap<>();
@@ -290,7 +290,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.excludedLicenses")
+    @Parameter( property = "license.excludedLicenses")
     ExcludedLicenses excludedLicenses;
 
     /**
@@ -301,7 +301,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.bundleThirdPartyPath",
+    @Parameter( property = "license.bundleThirdPartyPath",
             defaultValue = "META-INF/${project.artifactId}-THIRD-PARTY.txt" )
     String bundleThirdPartyPath;
 
@@ -313,7 +313,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.generateBundle", defaultValue = "false" )
+    @Parameter( property = "license.generateBundle", defaultValue = "false" )
     boolean generateBundle;
 
     /**
@@ -321,7 +321,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.force", defaultValue = "false" )
+    @Parameter( property = "license.force", defaultValue = "false" )
     boolean force;
 
     /**
@@ -331,7 +331,7 @@ public abstract class AbstractAddThirdPartyMojo
      * @deprecated since 1.14, use now {@link #failOnMissing} or {@link #failOnBlacklist}.
      */
     @Deprecated
-    @Parameter(property = "license.failIfWarning", defaultValue = "false" )
+    @Parameter( property = "license.failIfWarning", defaultValue = "false" )
     boolean failIfWarning;
 
     /**
@@ -339,7 +339,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.14
      */
-    @Parameter(property = "license.failOnMissing", defaultValue = "false" )
+    @Parameter( property = "license.failOnMissing", defaultValue = "false" )
     boolean failOnMissing;
 
     /**
@@ -347,7 +347,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.14
      */
-    @Parameter(property = "license.failOnBlacklist", defaultValue = "false" )
+    @Parameter( property = "license.failOnBlacklist", defaultValue = "false" )
     boolean failOnBlacklist;
 
     @Parameter(property = "license.failOnNotWhitelistedDependency", defaultValue = "false")
@@ -360,7 +360,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.6
      */
-    @Parameter(property = "license.sortArtifactByName", defaultValue = "false" )
+    @Parameter( property = "license.sortArtifactByName", defaultValue = "false" )
     boolean sortArtifactByName;
 
     @Parameter(property = "license.includedDependenciesWhitelist")
@@ -378,7 +378,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.fileTemplate", defaultValue = "/org/codehaus/mojo/license/third-party-file.ftl" )
+    @Parameter( property = "license.fileTemplate", defaultValue = "/org/codehaus/mojo/license/third-party-file.ftl" )
     String fileTemplate;
 
     /**
@@ -386,7 +386,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0.0
      */
-    @Parameter(property = "localRepository", required = true, readonly = true )
+    @Parameter( property = "localRepository", required = true, readonly = true )
     ArtifactRepository localRepository;
 
     /**
@@ -394,13 +394,13 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0.0
      */
-    @Parameter(property = "project.remoteArtifactRepositories", required = true, readonly = true )
+    @Parameter( property = "project.remoteArtifactRepositories", required = true, readonly = true )
     List<ArtifactRepository> remoteRepositories;
 
     /**
      * The set of dependencies for the current project, used to locate license databases.
      */
-    @Parameter(property = "project.artifacts", required = true, readonly = true )
+    @Parameter( property = "project.artifacts", required = true, readonly = true )
     Set<Artifact> dependencies;
 
     // ----------------------------------------------------------------------

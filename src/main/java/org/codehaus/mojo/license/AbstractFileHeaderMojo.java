@@ -71,7 +71,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.processStartTag" )
+    @Parameter( property = "license.processStartTag" )
     private String processStartTag;
 
     /**
@@ -81,7 +81,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.processEndTag" )
+    @Parameter( property = "license.processEndTag" )
     private String processEndTag;
 
     /**
@@ -91,7 +91,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.sectionDelimiter" )
+    @Parameter( property = "license.sectionDelimiter" )
     private String sectionDelimiter;
 
     /**
@@ -105,7 +105,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.addSvnKeyWords", defaultValue = "false" )
+    @Parameter( property = "license.addSvnKeyWords", defaultValue = "false" )
     private boolean addSvnKeyWords;
 
     /**
@@ -116,7 +116,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.canUpdateDescription", defaultValue = "false" )
+    @Parameter( property = "license.canUpdateDescription", defaultValue = "false" )
     private boolean canUpdateDescription;
 
     /**
@@ -127,7 +127,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.canUpdateCopyright", defaultValue = "false" )
+    @Parameter( property = "license.canUpdateCopyright", defaultValue = "false" )
     private boolean canUpdateCopyright;
 
     /**
@@ -138,7 +138,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.canUpdateLicense", defaultValue = "true" )
+    @Parameter( property = "license.canUpdateLicense", defaultValue = "true" )
     private boolean canUpdateLicense;
 
     /**
@@ -150,7 +150,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.ignoreTag" )
+    @Parameter( property = "license.ignoreTag" )
     String ignoreTag;
 
     /**
@@ -162,7 +162,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.2
      */
-    @Parameter(property = "license.addJavaLicenseAfterPackage", defaultValue = "true" )
+    @Parameter( property = "license.addJavaLicenseAfterPackage", defaultValue = "true" )
     private boolean addJavaLicenseAfterPackage;
 
     /**
@@ -172,7 +172,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.9
      */
-    @Parameter(property = "license.useJavaNoReformatCommentStartTag", defaultValue = "true" )
+    @Parameter( property = "license.useJavaNoReformatCommentStartTag", defaultValue = "true" )
     private boolean useJavaNoReformatCommentStartTag;
 
     /**
@@ -185,7 +185,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.9
      */
-    @Parameter(property = "license.emptyLineAfterHeader", defaultValue = "false" )
+    @Parameter( property = "license.emptyLineAfterHeader", defaultValue = "false" )
     private boolean emptyLineAfterHeader;
 
     /**
@@ -198,7 +198,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.9
      */
-    @Parameter(property = "license.ignoreNoFileToScan", defaultValue = "false" )
+    @Parameter( property = "license.ignoreNoFileToScan", defaultValue = "false" )
     private boolean ignoreNoFileToScan;
 
     /**
@@ -215,7 +215,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.roots" )
+    @Parameter( property = "license.roots" )
     private String[] roots;
 
     /**
@@ -225,7 +225,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.includes" )
+    @Parameter( property = "license.includes" )
     private String[] includes;
 
     /**
@@ -238,7 +238,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.0
      */
-    @Parameter(property = "license.excludes" )
+    @Parameter( property = "license.excludes" )
     private String[] excludes;
 
     /**
@@ -288,7 +288,7 @@ public abstract class AbstractFileHeaderMojo extends AbstractLicenseNameMojo
      *
      * @since 1.1
      */
-    @Parameter(property = "license.descriptionTemplate",
+    @Parameter( property = "license.descriptionTemplate",
             defaultValue = "/org/codehaus/mojo/license/default-file-header-description.ftl" )
     private String descriptionTemplate;
 
