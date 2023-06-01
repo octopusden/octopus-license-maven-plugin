@@ -60,9 +60,20 @@ public class AggregateDownloadLicensesMojo
     /**
      * {@inheritDoc}
      */
-    protected boolean isSkip()
+    @Override
+    public boolean isSkip()
     {
         return skipAggregateDownloadLicenses || ( executeOnlyOnRootModule && !getProject().isExecutionRoot() );
+    }
+
+    @Override
+    protected void init() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
+    }
+
+    @Override
+    protected void doAction() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
     }
 
     /**

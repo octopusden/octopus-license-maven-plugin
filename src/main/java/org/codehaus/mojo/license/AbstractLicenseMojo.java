@@ -53,7 +53,7 @@ public abstract class AbstractLicenseMojo
      * @since 1.14.25
      */
     @Parameter(property = "license.skip", defaultValue = "false" )
-    private boolean skip;
+    protected boolean skip;
 
 
     /**
@@ -64,8 +64,8 @@ public abstract class AbstractLicenseMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.verbose", defaultValue = "${maven.verbose}" )
-    boolean verbose;
+    @Parameter(property = "license.verbose", defaultValue = "${maven.verbose}" )
+    protected boolean verbose;
 
     /**
      * Encoding used to read and writes files.
@@ -75,8 +75,8 @@ public abstract class AbstractLicenseMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.encoding", defaultValue = "${project.build.sourceEncoding}" )
-    String encoding;
+    @Parameter(property = "license.encoding", defaultValue = "${project.build.sourceEncoding}" )
+    protected String encoding;
 
     /**
      * Current maven session. (used to launch certain mojo once by build).
@@ -84,7 +84,7 @@ public abstract class AbstractLicenseMojo
      * @since 1.0
      */
     @Parameter( defaultValue = "${session}", readonly = true )
-    MavenSession session;
+    protected MavenSession session;
 
     /**
      * The reacted project.
@@ -92,10 +92,13 @@ public abstract class AbstractLicenseMojo
      * @since 1.0
      */
     @Parameter( defaultValue = "${project}", readonly = true )
-    MavenProject project;
+    protected MavenProject project;
 
     @Parameter(property="license.proxy", readonly = true)
-    String proxyUrl;
+    protected String proxyUrl;
+
+    @Parameter(property="license.repository", readonly = true)
+    protected String licenseRepository;
 
     // ----------------------------------------------------------------------
     // Abstract methods
@@ -155,9 +158,7 @@ public abstract class AbstractLicenseMojo
     /**
      * {@inheritDoc}
      */
-    public final void execute()
-        throws MojoExecutionException, MojoFailureException
-    {
+    public  void execute() throws MojoExecutionException, MojoFailureException {
         try
         {
             if ( getLog().isDebugEnabled() )
@@ -277,7 +278,7 @@ public abstract class AbstractLicenseMojo
     /**
      * @return {@code true} if verbose flag is on, {@code false} otherwise
      */
-    public final boolean isVerbose()
+    public boolean isVerbose()
     {
         return verbose;
     }

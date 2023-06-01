@@ -64,9 +64,19 @@ public class DownloadLicensesMojo
     /**
      * {@inheritDoc}
      */
-    protected boolean isSkip()
+    public boolean isSkip()
     {
         return skipDownloadLicenses;
+    }
+
+    @Override
+    protected void init() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
+    }
+
+    @Override
+    protected void doAction() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
     }
 
     protected SortedMap<String, MavenProject>  getDependencies()

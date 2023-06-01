@@ -227,13 +227,8 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     @Parameter( property = "localRepository", required = true, readonly = true )
     private ArtifactRepository localRepository;
 
-    /**
-     * The Maven Project.
-     *
-     * @since 1.1
-     */
-    @Parameter( defaultValue = "${project}", readonly = true )
-    private MavenProject project;
+    @Parameter(property="license.repository", readonly = true)
+    String licenseRepository;
 
     // ----------------------------------------------------------------------
     // Plexus Components
@@ -502,12 +497,12 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
         }
 
         // LicenseMap is now complete, let's merge licenses if necessary
-        thirdPartyHelper.mergeLicenses( licenseMerges, licenseMap);
+        thirdPartyHelper.mergeLicenses( licenseMerges, licenseMap, licenseRepository );
 
         // Add override licenses
         thirdPartyTool.overrideLicenses( licenseMap, projectDependencies, encoding, overrideFile );
 
-        // let's build third party details for each dependencies
+        // let's build third party details for each dependency
         Collection<ThirdPartyDetails> details = new ArrayList<ThirdPartyDetails>();
 
         for ( Map.Entry<MavenProject, String[]> entry : licenseMap.toDependencyMap().entrySet() )

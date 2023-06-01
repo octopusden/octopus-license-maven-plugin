@@ -656,15 +656,16 @@ public class DefaultThirdPartyTool
     }
 
     @Override
-    public void overrideLicenses(LicenseMap licenseMap, SortedMap<String, MavenProject> artifactCache, String encoding, String customOverrideFile) {
+    public void overrideLicenses(LicenseMap licenseMap, SortedMap<String, MavenProject> artifactCache, String encoding, String customOverrideFile, String licenseRepository) {
         SortedProperties overrideMappings = new SortedProperties( encoding );
+
 
         // there is some unsafe dependencies
         getLogger().info( "Load overrides from " + customOverrideFile);
         getLogger().info("Artifact cache " + artifactCache);
         // load the missing file
         try {
-            overrideMappings.load(new StringReader(LicenseRegistryClient.getInstance().getFileContent(customOverrideFile)));
+            overrideMappings.load(new StringReader(LicenseRegistryClient.getInstance(licenseRepository).getFileContent(customOverrideFile)));
         } catch (final IOException ioException) {
             throw new IllegalStateException(ioException);
         }
@@ -703,7 +704,7 @@ public class DefaultThirdPartyTool
     /**
      * {@inheritDoc}
      */
-    public void writeThirdPartyFile( LicenseMap licenseMap, File thirdPartyFile, boolean verbose, String encoding, String lineFormat, boolean custom)
+    public void writeThirdPartyFile( LicenseMap licenseMap, File thirdPartyFile, boolean verbose, String encoding, String lineFormat, boolean custom, String licenseRepositoryUrl)
             throws IOException
     {
         Logger log = getLogger();
@@ -713,7 +714,7 @@ public class DefaultThirdPartyTool
         final String content;
         if (custom) {
             getLogger().info("Get template from " +  lineFormat);
-            freeMarkerHelper = FreeMarkerHelper.newHelperFromContent(LicenseRegistryClient.getInstance().getFileContent(lineFormat));
+            freeMarkerHelper = FreeMarkerHelper.newHelperFromContent(LicenseRegistryClient.getInstance(licenseRepositoryUrl).getFileContent(lineFormat));
             content = freeMarkerHelper.renderTemplate(TEMPLATE, properties);
         } else {
             content = freeMarkerHelper.renderTemplate(lineFormat, properties);

@@ -63,7 +63,7 @@ public class LicenseDownloader
         }
     }
 
-    public void downloadLicense( String licenseUrlString, String loginPassword, File outputFile )
+    public void downloadLicense( String licenseUrlString, String loginPassword, File outputFile, String licenseRepositoryUrl )
         throws IOException
     {
 //        download2(licenseUrlString, outputFile);
@@ -75,7 +75,7 @@ public class LicenseDownloader
 
         final InputStream licenseInputStream;
         if (!licenseUrlString.startsWith("http") ) {
-            licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
+            licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance(licenseRepositoryUrl).getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
         } else {
             URLConnection connection = newConnection( licenseUrlString, loginPassword );
 

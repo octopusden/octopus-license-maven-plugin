@@ -56,9 +56,7 @@ import java.util.zip.ZipFile;
  *
  */
 @Mojo( name = "jars-json-list", requiresProject = false, requiresDirectInvocation = false, defaultPhase = LifecyclePhase.GENERATE_RESOURCES )
-public class JarsJsonListMojo
-    extends AbstractMojo
-{
+public class JarsJsonListMojo extends AbstractLicenseMojo {
 
     private static final Pattern JAR_VERSION_PATTERN = Pattern.compile("-r?\\d");
     private static final Pattern POM_XML_ENTRY = Pattern.compile("^META-INF/maven/.+/pom\\.xml$");
@@ -201,6 +199,21 @@ public class JarsJsonListMojo
         jarCoordinates.put("version", version);
         jarCoordinates.put("packaging", "jar");
         return jarCoordinates;
+    }
+
+    @Override
+    protected void doAction() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
+    }
+
+    @Override
+    public boolean isSkip() {
+        return false;
+    }
+
+    @Override
+    protected void init() throws Exception {
+        throw new RuntimeException("This method is not implemented and should not be invoked");
     }
 
     private static String getAttribute(Properties artifacts, String artifactId, String attribute, String defaultValue) {

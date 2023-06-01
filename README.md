@@ -32,6 +32,7 @@ By default, all files are placed in *${project.build.directory}/generated-resour
         <licensesOutputDirectory>${license.output.directory}</licensesOutputDirectory>
         <outputDirectory>${license.output.directory}</outputDirectory>
         <skip>${license.skip}</skip>
+        <licenseRepository>${license.repo.git.url}</licenseRepository>
     </configuration>
     <executions>
         <execution>
@@ -67,8 +68,6 @@ By default, all files are placed in *${project.build.directory}/generated-resour
 ```
         
 * Add generated license files into distribution (applied only for explicitly distributed components)
-* The parameter **license-registry.git-repository** is mandatory parameter specifies the URL of the license repository. 
-It can be provided as either an environment variable or as JVM argument, for example ```mvn clean install -Dlicense-registry.git-repository=<repository_url>```
 
 * Example for assembling with maven-war-plugin: 
 ```xml

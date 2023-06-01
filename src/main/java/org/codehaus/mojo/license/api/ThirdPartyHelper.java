@@ -157,6 +157,6 @@ public interface ThirdPartyHelper
      * @throws MojoFailureException if there is a bad license merge definition (says for example two license with
      *                              same name)
      */
-    void mergeLicenses( List<String> licenseMerges, LicenseMap licenseMap ) throws MojoFailureException;
+    void mergeLicenses( List<String> licenseMerges, LicenseMap licenseMap, String licenseRepositoryUrl ) throws MojoFailureException;
 
 }

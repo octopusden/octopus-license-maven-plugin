@@ -276,11 +276,11 @@ public class DefaultThirdPartyHelper
     /**
      * {@inheritDoc}
      */
-    public void mergeLicenses( List<String> licenseMerges, LicenseMap licenseMap )
+    public void mergeLicenses( List<String> licenseMerges, LicenseMap licenseMap, String licenseRepositoryUrl )
             throws MojoFailureException
     {
         log.info("Loading merges from merges.txt");
-        Scanner mergesLines = new Scanner(LicenseRegistryClient.getInstance().getFileContent("merges.txt")).useDelimiter("\\n");
+        Scanner mergesLines = new Scanner(LicenseRegistryClient.getInstance(licenseRepositoryUrl).getFileContent("merges.txt")).useDelimiter("\\n");
         while (mergesLines.hasNext()) {
             licenseMerges.add(mergesLines.next());
         }

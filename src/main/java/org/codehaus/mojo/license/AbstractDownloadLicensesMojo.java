@@ -31,7 +31,7 @@ import java.util.*;
  * @author Tony Chemit - chemit@codelutin.com
  */
 public abstract class AbstractDownloadLicensesMojo
-        extends AbstractMojo
+        extends AbstractLicenseMojo
         implements MavenProjectDependenciesConfigurator {
     public static final String LICENSE_MAP_KEY = "licenseMap";
 
@@ -39,18 +39,13 @@ public abstract class AbstractDownloadLicensesMojo
     // Mojo Parameters
     // ----------------------------------------------------------------------
 
-    /**
-     * @since 1.14.25
-     */
-    @Parameter(property = "license.skip", defaultValue = "false")
-    private boolean skip;
 
     /**
      * A flag to fail the build if at least one dependency was detected without a license.
      *
      * @since 1.14
      */
-    @Parameter( property = "license.failOnMissing", defaultValue = "false" )
+    @Parameter(property = "license.failOnMissing", defaultValue = "false" )
     boolean failOnMissing;
 
     /**
@@ -58,7 +53,7 @@ public abstract class AbstractDownloadLicensesMojo
      *
      * @since 1.14
      */
-    @Parameter( property = "license.failOnBlacklist", defaultValue = "false" )
+    @Parameter(property = "license.failOnBlacklist", defaultValue = "false" )
     boolean failOnBlacklist;
 
 
@@ -211,14 +206,6 @@ public abstract class AbstractDownloadLicensesMojo
     @Parameter(property = "license.includedArtifacts", defaultValue = "")
     private String includedArtifacts;
 
-    /**
-     * The Maven Project Object
-     *
-     * @since 1.0
-     */
-    @Parameter(defaultValue = "${project}", readonly = true)
-    private MavenProject project;
-
     @Parameter
     List<String> licenseMerges = new ArrayList<>();
 
@@ -272,21 +259,6 @@ public abstract class AbstractDownloadLicensesMojo
     @Parameter(property = "license.encoding", defaultValue = "${project.build.sourceEncoding}")
     String encoding;
 
-    protected abstract boolean isSkip();
-
-    public final boolean isSkipAll() {
-        return skip || isSkip();
-    }
-
-
-    protected MavenProject getProject() {
-        return project;
-    }
-
-    public String getEncoding() {
-        return encoding;
-    }
-
     protected abstract SortedMap<String, MavenProject> getDependencies();
 
     // ----------------------------------------------------------------------
@@ -339,7 +311,8 @@ public abstract class AbstractDownloadLicensesMojo
 
         try {
             getLog().info("Loading license urls from licenses.properties");
-            licenseProperties.load(new StringReader(LicenseRegistryClient.getInstance().getFileContent("licenses.properties")));
+            LicenseRegistryClient lrc = LicenseRegistryClient.getInstance(licenseRepository);
+            licenseProperties.load(new StringReader(lrc.getFileContent("licenses.properties")));
         } catch (IOException e) {
             throw new MojoExecutionException("Can't fetch external third-party dependencies from licenses.properties", e );
         }
@@ -396,7 +369,7 @@ public abstract class AbstractDownloadLicensesMojo
 
         overrideLicenses(licenseMap, projectDependenciesMap);
 
-        thirdPartyHelper.mergeLicenses(licenseMerges, licenseMap);
+        thirdPartyHelper.mergeLicenses(licenseMerges, licenseMap, licenseRepository);
         return licenseMap;
     }
 
@@ -404,7 +377,7 @@ public abstract class AbstractDownloadLicensesMojo
 //        thirdPartyTool.overrideLicenses( licenseMap1, projectDependencies, getEncoding(), overrideFile );
 
         try {
-            thirdPartyTool.overrideLicenses( licenseMap, projectDependencies, getEncoding(), "thirdparty-licenses.properties");
+            thirdPartyTool.overrideLicenses( licenseMap, projectDependencies, getEncoding(), "thirdparty-licenses.properties", licenseRepository);
         } catch (IOException e) {
             throw new MojoFailureException("Can't fetch external third-party license info from thirdparty-licenses.properties", e );
         }
@@ -423,7 +396,7 @@ public abstract class AbstractDownloadLicensesMojo
             if (!downloadedLicenseURLs.contains(licenseUrl) || organizeLicensesByDependencies) {
                 getLog().info("Downloading " + license + " from " + licenseUrl);
                 LicenseDownloader licenseDownloader = new LicenseDownloader(proxyUrl);
-                licenseDownloader.downloadLicense(licenseUrl, proxyLoginPasswordEncoded, licenseOutputFile);
+                licenseDownloader.downloadLicense(licenseUrl, proxyLoginPasswordEncoded, licenseOutputFile, licenseRepository);
                 downloadedLicenseURLs.add(licenseUrl);
                 return true;
             }
@@ -570,12 +543,6 @@ public abstract class AbstractDownloadLicensesMojo
         return excludedArtifacts;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isVerbose() {
-        return getLog().isDebugEnabled();
-    }
 
     // ----------------------------------------------------------------------
     // Private Methods

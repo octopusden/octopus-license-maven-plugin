@@ -71,7 +71,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.outputDirectory",
+    @Parameter(property = "license.outputDirectory",
             defaultValue = "${project.build.directory}/generated-resources/licenses", required = true )
     private File outputDirectory;
 
@@ -80,7 +80,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.deployMissingFile", defaultValue = "true" )
+    @Parameter(property = "license.deployMissingFile", defaultValue = "true" )
     boolean deployMissingFile;
 
     /**
@@ -91,7 +91,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.useRepositoryMissingFiles", defaultValue = "true" )
+    @Parameter(property = "license.useRepositoryMissingFiles", defaultValue = "true" )
     boolean useRepositoryMissingFiles;
 
     /**
@@ -101,7 +101,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.acceptPomPackaging", defaultValue = "false" )
+    @Parameter(property = "license.acceptPomPackaging", defaultValue = "false" )
     boolean acceptPomPackaging;
 
     /**
@@ -109,7 +109,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.excludedScopes", defaultValue = "system" )
+    @Parameter(property = "license.excludedScopes", defaultValue = "system" )
     String excludedScopes;
 
     /**
@@ -117,7 +117,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.includedScopes")
+    @Parameter(property = "license.includedScopes")
     String includedScopes;
 
     /**
@@ -126,7 +126,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.excludedGroups")
+    @Parameter(property = "license.excludedGroups")
     String excludedGroups;
 
     /**
@@ -135,7 +135,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.includedGroups")
+    @Parameter(property = "license.includedGroups")
     String includedGroups;
 
     /**
@@ -144,7 +144,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.excludedArtifacts")
+    @Parameter(property = "license.excludedArtifacts")
     String excludedArtifacts;
 
     /**
@@ -153,7 +153,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.includedArtifacts")
+    @Parameter(property = "license.includedArtifacts")
     String includedArtifacts;
 
     /**
@@ -162,7 +162,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.includeTransitiveDependencies", defaultValue = "true" )
+    @Parameter(property = "license.includeTransitiveDependencies", defaultValue = "true" )
     boolean includeTransitiveDependencies;
 
     /**
@@ -170,7 +170,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.13
      */
-    @Parameter( property = "license.excludeTransitiveDependencies", defaultValue = "false" )
+    @Parameter(property = "license.excludeTransitiveDependencies", defaultValue = "false" )
     boolean excludeTransitiveDependencies;
 
     /**
@@ -178,10 +178,10 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.thirdPartyFilename", defaultValue = "THIRD-PARTY.txt", required = true )
+    @Parameter(property = "license.thirdPartyFilename", defaultValue = "THIRD-PARTY.txt", required = true )
     String thirdPartyFilename;
 
-    @Parameter( property = "license.thirdPartyDepsFilename", defaultValue = "THIRD-PARTY-DEPS", required = true )
+    @Parameter(property = "license.thirdPartyDepsFilename", defaultValue = "THIRD-PARTY-DEPS", required = true )
     String thirdPartyDepsJsonFilename;
 
     /**
@@ -189,7 +189,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.useMissingFile", defaultValue = "false" )
+    @Parameter(property = "license.useMissingFile", defaultValue = "false" )
     boolean useMissingFile;
 
     /**
@@ -197,7 +197,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.missingFile", defaultValue = "src/license/THIRD-PARTY.properties" )
+    @Parameter(property = "license.missingFile", defaultValue = "src/license/THIRD-PARTY.properties" )
     File missingFile;
 
     /**
@@ -205,7 +205,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.14
      */
-    @Parameter( property = "license.missingLicensesFileArtifact" )
+    @Parameter(property = "license.missingLicensesFileArtifact" )
     String missingLicensesFileArtifact;
 
     /**
@@ -213,7 +213,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.12
      */
-    @Parameter( property = "license.overrideFile", defaultValue = "src/license/override-THIRD-PARTY.properties" )
+    @Parameter(property = "license.overrideFile", defaultValue = "src/license/override-THIRD-PARTY.properties" )
     File overrideFile;
 
 
@@ -258,10 +258,10 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.includedLicenses")
+    @Parameter(property = "license.includedLicenses")
     IncludedLicenses includedLicenses;
 
-    @Parameter( property = "license.hiddenLicenses")
+    @Parameter(property = "license.hiddenLicenses")
     HiddenLicenses hiddenLicenses;
 
     Map<String, List<Dependency>> includedDependencies = new HashMap<>();
@@ -290,7 +290,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.excludedLicenses")
+    @Parameter(property = "license.excludedLicenses")
     ExcludedLicenses excludedLicenses;
 
     /**
@@ -301,7 +301,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.bundleThirdPartyPath",
+    @Parameter(property = "license.bundleThirdPartyPath",
             defaultValue = "META-INF/${project.artifactId}-THIRD-PARTY.txt" )
     String bundleThirdPartyPath;
 
@@ -313,7 +313,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.generateBundle", defaultValue = "false" )
+    @Parameter(property = "license.generateBundle", defaultValue = "false" )
     boolean generateBundle;
 
     /**
@@ -321,7 +321,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Parameter( property = "license.force", defaultValue = "false" )
+    @Parameter(property = "license.force", defaultValue = "false" )
     boolean force;
 
     /**
@@ -331,7 +331,7 @@ public abstract class AbstractAddThirdPartyMojo
      * @deprecated since 1.14, use now {@link #failOnMissing} or {@link #failOnBlacklist}.
      */
     @Deprecated
-    @Parameter( property = "license.failIfWarning", defaultValue = "false" )
+    @Parameter(property = "license.failIfWarning", defaultValue = "false" )
     boolean failIfWarning;
 
     /**
@@ -339,7 +339,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.14
      */
-    @Parameter( property = "license.failOnMissing", defaultValue = "false" )
+    @Parameter(property = "license.failOnMissing", defaultValue = "false" )
     boolean failOnMissing;
 
     /**
@@ -347,7 +347,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.14
      */
-    @Parameter( property = "license.failOnBlacklist", defaultValue = "false" )
+    @Parameter(property = "license.failOnBlacklist", defaultValue = "false" )
     boolean failOnBlacklist;
 
     @Parameter(property = "license.failOnNotWhitelistedDependency", defaultValue = "false")
@@ -360,7 +360,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.6
      */
-    @Parameter( property = "license.sortArtifactByName", defaultValue = "false" )
+    @Parameter(property = "license.sortArtifactByName", defaultValue = "false" )
     boolean sortArtifactByName;
 
     @Parameter(property = "license.includedDependenciesWhitelist")
@@ -378,7 +378,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Parameter( property = "license.fileTemplate", defaultValue = "/org/codehaus/mojo/license/third-party-file.ftl" )
+    @Parameter(property = "license.fileTemplate", defaultValue = "/org/codehaus/mojo/license/third-party-file.ftl" )
     String fileTemplate;
 
     /**
@@ -386,7 +386,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0.0
      */
-    @Parameter( property = "localRepository", required = true, readonly = true )
+    @Parameter(property = "localRepository", required = true, readonly = true )
     ArtifactRepository localRepository;
 
     /**
@@ -394,13 +394,13 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0.0
      */
-    @Parameter( property = "project.remoteArtifactRepositories", required = true, readonly = true )
+    @Parameter(property = "project.remoteArtifactRepositories", required = true, readonly = true )
     List<ArtifactRepository> remoteRepositories;
 
     /**
      * The set of dependencies for the current project, used to locate license databases.
      */
-    @Parameter( property = "project.artifacts", required = true, readonly = true )
+    @Parameter(property = "project.artifacts", required = true, readonly = true )
     Set<Artifact> dependencies;
 
     // ----------------------------------------------------------------------
@@ -507,7 +507,7 @@ public abstract class AbstractAddThirdPartyMojo
         }
 
         getLog().info("Loading WHITE licenses: licenses-whitelist.txt");
-        final LicenseRegistryClient licenseRegistryClient = LicenseRegistryClient.getInstance();
+        final LicenseRegistryClient licenseRegistryClient = LicenseRegistryClient.getInstance(licenseRepository);
         this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent("licenses-whitelist.txt"));
         getLog().info("Loading HIDDEN licenses: licenses-hidden.txt");
         this.hiddenLicenses = new HiddenLicenses(licenseRegistryClient.getFileContent("licenses-hidden.txt"));
@@ -575,7 +575,7 @@ public abstract class AbstractAddThirdPartyMojo
             licenseMerges = new ArrayList<>();
         }
 
-        getHelper().mergeLicenses( licenseMerges, licenseMap);
+        getHelper().mergeLicenses( licenseMerges, licenseMap, licenseRepository);
 
         if ( checkUnsafeDependencies() )
         {
@@ -984,7 +984,7 @@ public abstract class AbstractAddThirdPartyMojo
             {
                 licenseMap1 = licenseMap.toLicenseMapOrderByName();
             }
-            thirdPartyTool.writeThirdPartyFile( licenseMap1, thirdPartyFile, isVerbose(), getEncoding(), "templates/third-party-file.ftl", true );
+            thirdPartyTool.writeThirdPartyFile( licenseMap1, thirdPartyFile, isVerbose(), getEncoding(), "templates/third-party-file.ftl", true, licenseRepository );
         }
 
         if ( doGenerateBundle )
@@ -1001,7 +1001,7 @@ public abstract class AbstractAddThirdPartyMojo
     }
 
     void overrideLicenses() throws IOException {
-        thirdPartyTool.overrideLicenses( licenseMap, projectDependencies, getEncoding(), "thirdparty-licenses.properties");
+        thirdPartyTool.overrideLicenses( licenseMap, projectDependencies, getEncoding(), "thirdparty-licenses.properties", licenseRepository);
     }
 
     private boolean isFailOnMissing() {

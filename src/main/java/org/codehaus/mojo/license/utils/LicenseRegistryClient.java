@@ -90,12 +90,15 @@ public final class LicenseRegistryClient {
         return result;
     }
 
-    public synchronized static LicenseRegistryClient getInstance() {
+    public synchronized static LicenseRegistryClient getInstance(String repoUrl) {
         if (INSTANCE == null) {
             final String licenseRegistryGitRepository = Optional.ofNullable(
-                    System.getProperty(LICENSE_REGISTRY_GIT_REPOSITORY_PROPERTY_NAME,
-                            System.getenv(LICENSE_REGISTRY_GIT_REPOSITORY_PROPERTY_NAME))
-            ).orElseThrow(() -> new IllegalArgumentException("Either Environment variable or JVM argument for set 'license-registry.git-repository' must be provided"));
+                            System.getProperty(LICENSE_REGISTRY_GIT_REPOSITORY_PROPERTY_NAME,
+                                    System.getenv(LICENSE_REGISTRY_GIT_REPOSITORY_PROPERTY_NAME))
+                    )
+                    .orElseGet(() -> Optional.ofNullable(repoUrl)
+                            .orElseThrow(() -> new IllegalArgumentException("Either license.repository parameter or environment variable or JVM argument for set '"
+                                    + LICENSE_REGISTRY_GIT_REPOSITORY_PROPERTY_NAME + "' must be provided")));
             INSTANCE = new LicenseRegistryClient(licenseRegistryGitRepository);
         }
         return INSTANCE;
