@@ -248,17 +248,6 @@ public abstract class AbstractDownloadLicensesMojo
      */
     private String proxyLoginPasswordEncoded;
 
-    /**
-     * Encoding used to read and writes files.
-     * <p>
-     * <b>Note:</b> If nothing is filled here, we will use the system
-     * property {@code file.encoding}.
-     *
-     * @since 1.0
-     */
-    @Parameter(property = "license.encoding", defaultValue = "${project.build.sourceEncoding}")
-    String encoding;
-
     protected abstract SortedMap<String, MavenProject> getDependencies();
 
     // ----------------------------------------------------------------------

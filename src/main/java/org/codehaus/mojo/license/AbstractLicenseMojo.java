@@ -50,6 +50,9 @@ public abstract class AbstractLicenseMojo
     // ----------------------------------------------------------------------
 
     /**
+     * Sets whether to skip the execution of the goal.
+     * If set to true, the goal execution will be skipped.
+     *
      * @since 1.14.25
      */
     @Parameter(property = "license.skip", defaultValue = "false" )
