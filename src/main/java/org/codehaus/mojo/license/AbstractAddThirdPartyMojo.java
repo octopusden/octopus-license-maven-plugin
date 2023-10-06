@@ -381,6 +381,9 @@ public abstract class AbstractAddThirdPartyMojo
     @Parameter( property = "license.fileTemplate", defaultValue = "/org/codehaus/mojo/license/third-party-file.ftl" )
     String fileTemplate;
 
+    @Parameter(property = "licenses.fileWhitelist", defaultValue = "licenses-whitelist.txt")
+    private String licensesFileWhitelist;
+
     /**
      * Local Repository.
      *
@@ -506,9 +509,9 @@ public abstract class AbstractAddThirdPartyMojo
             setVerbose( true );
         }
 
-        getLog().info("Loading WHITE licenses: licenses-whitelist.txt");
+        getLog().info(String.format("Loading WHITE licenses: %s", licensesFileWhitelist));
         final LicenseRegistryClient licenseRegistryClient = LicenseRegistryClient.getInstance();
-        this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent("licenses-whitelist.txt"));
+        this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent(licensesFileWhitelist));
         getLog().info("Loading HIDDEN licenses: licenses-hidden.txt");
         this.hiddenLicenses = new HiddenLicenses(licenseRegistryClient.getFileContent("licenses-hidden.txt"));
 
