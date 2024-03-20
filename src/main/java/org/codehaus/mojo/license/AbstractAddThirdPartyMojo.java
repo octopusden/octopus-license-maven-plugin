@@ -1007,7 +1007,7 @@ public abstract class AbstractAddThirdPartyMojo
     }
 
     void writeThirdPartyDependenciesFile() throws IOException {
-        if (!includedDependencies.isEmpty() && failOnNotWhitelistedDependency) {
+        if (listedDependencies != null && !includedDependencies.isEmpty() && failOnNotWhitelistedDependency) {
             dependenciesTool.writeThirdPartyDependenciesFile(getOutputDirectory(), thirdPartyDepsJsonFilename + ".json", listedDependencies);
         }
     }
