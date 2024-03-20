@@ -878,7 +878,12 @@ public abstract class AbstractAddThirdPartyMojo
         if ( !safe )
         {
             Log log = getLog();
-            log.error( "There are " + unsafeLicenses.size() + " forbidden licenses used:" );
+            String message = "There are " + unsafeLicenses.size() + " forbidden licenses used:";
+            if (isFailOnBlacklistAndWarning()) {
+                log.error(message);
+            } else {
+                log.warn(message);
+            }
             for ( String unsafeLicense : unsafeLicenses )
             {
 
@@ -892,7 +897,11 @@ public abstract class AbstractAddThirdPartyMojo
                     {
                         sb.append( "\n -" ).append( MojoHelper.getArtifactName( dep ) );
                     }
-                    log.error( sb.toString() );
+                    if (isFailOnBlacklistAndWarning()) {
+                        log.error(sb.toString());
+                    } else {
+                        log.warn(sb.toString());
+                    }
                 }
             }
         }
@@ -1028,8 +1037,12 @@ public abstract class AbstractAddThirdPartyMojo
         }
     }
 
+    boolean isFailOnBlacklistAndWarning() {
+        return isFailOnBlacklist() || isFailIfWarning();
+    }
+
     void checkBlacklist(boolean safeLicense ) throws MojoFailureException {
-        if ( !safeLicense && (isFailOnBlacklist() || isFailIfWarning()) )
+        if ( !safeLicense && isFailOnBlacklistAndWarning() )
         {
             throw new MojoFailureException( "There are some forbidden licenses used, please check your dependencies." );
         }
