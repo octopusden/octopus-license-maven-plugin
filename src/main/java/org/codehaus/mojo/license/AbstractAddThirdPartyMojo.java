@@ -878,7 +878,12 @@ public abstract class AbstractAddThirdPartyMojo
         if ( !safe )
         {
             Log log = getLog();
-            log.warn( "There are " + unsafeLicenses.size() + " forbidden licenses used:" );
+            String message = "There are " + unsafeLicenses.size() + " forbidden licenses used:";
+            if (isFailOnBlacklist()) {
+                log.error(message);
+            } else {
+                log.warn(message);
+            }
             for ( String unsafeLicense : unsafeLicenses )
             {
 
@@ -892,7 +897,11 @@ public abstract class AbstractAddThirdPartyMojo
                     {
                         sb.append( "\n -" ).append( MojoHelper.getArtifactName( dep ) );
                     }
-                    log.warn( sb.toString() );
+                    if (isFailOnBlacklist()) {
+                        log.error(sb.toString());
+                    } else {
+                        log.warn(sb.toString());
+                    }
                 }
             }
         }
@@ -998,7 +1007,7 @@ public abstract class AbstractAddThirdPartyMojo
     }
 
     void writeThirdPartyDependenciesFile() throws IOException {
-        if (!includedDependencies.isEmpty() || failOnNotWhitelistedDependency) {
+        if (listedDependencies != null && !includedDependencies.isEmpty() && failOnNotWhitelistedDependency) {
             dependenciesTool.writeThirdPartyDependenciesFile(getOutputDirectory(), thirdPartyDepsJsonFilename + ".json", listedDependencies);
         }
     }
