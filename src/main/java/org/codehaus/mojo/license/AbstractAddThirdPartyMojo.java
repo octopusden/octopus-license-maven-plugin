@@ -1038,7 +1038,8 @@ public abstract class AbstractAddThirdPartyMojo
     }
 
     void checkBlacklist(boolean safeLicense ) throws MojoFailureException {
-        if (!safeLicense && (isFailOnBlacklist() || isFailIfWarning())) {
+        if ( !safeLicense && (isFailOnBlacklist() || isFailIfWarning()) )
+        {
             throw new MojoFailureException("There are some forbidden licenses used, please check your dependencies.");
         }
     }
