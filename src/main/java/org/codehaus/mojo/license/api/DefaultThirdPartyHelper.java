@@ -30,14 +30,19 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
+import org.codehaus.mojo.license.artifactory.ArtifactoryDsl;
 import org.codehaus.mojo.license.model.LicenseMap;
 import org.codehaus.mojo.license.nexus.LicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.SortedProperties;
+import org.codehaus.mojo.license.xray.XrayLicenseProcessor;
+import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.codehaus.mojo.license.model.LicenseMap.UNKNOWN_LICENSE_MESSAGE;
 
@@ -190,7 +195,46 @@ public class DefaultThirdPartyHelper
             thirdPartyTool.addLicense( licenseMap, project, project.getLicenses() );
         }
         updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
+        updateLicensesWithInfoFromXRay(licenseMap, proxyUrl);
         return licenseMap;
+    }
+
+    private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap, String proxyUrl) {
+        log.info("Update licenses with info from XRay");
+        SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
+
+        if(mavenProjects != null) {
+            Properties xrayProperties = new Properties();
+            try (InputStream inputStream = DefaultThirdPartyHelper.class.getClassLoader().getResourceAsStream("xray.properties")) {
+                xrayProperties.load(inputStream);
+
+                String username = xrayProperties.getProperty("xray.username");
+                String password = xrayProperties.getProperty("xray.password");
+
+                Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
+
+                ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, username, password);
+                XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, username, password);
+
+                for (MavenProject mavenProject: projectsToIterate) {
+                    List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
+
+                    List<String> paths = projectRepoPaths
+                            .stream()
+                            .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
+                            .collect(Collectors.toList());
+
+                    List<License> licenses = licenseProcessor.getLicensesByProject(paths);
+
+                    if (!licenses.isEmpty()) {
+                        mavenProjects.remove(mavenProject);
+                        thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
+                    }
+                }
+            } catch (IOException e) {
+                log.info(e.getMessage());
+            }
+        }
     }
 
     private void updateLicensesWithInfoFromNexus(LicenseMap licenseMap, String proxyUrl) {
