@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ArtifactoryDsl {
-    private static final String BASE_URL = "https://artifactory.openwaygroup.com/artifactory";
+    private static final String BASE_URL = "https://artifactory/artifactory";
     private final String username;
     private final String password;
     private final Log log;

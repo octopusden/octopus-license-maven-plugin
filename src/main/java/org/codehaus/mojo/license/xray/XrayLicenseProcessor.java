@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class XrayLicenseProcessor {
 
-    private static final String SUMMARY_ARTIFACT_URL = "https://artifactory.openwaygroup.com/xray/api/v1/summary/artifact";
+    private static final String SUMMARY_ARTIFACT_URL = "https://artifactory/xray/api/v1/summary/artifact";
 
     private final Log log;
     private final String username;
