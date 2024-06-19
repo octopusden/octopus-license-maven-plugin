@@ -23,17 +23,17 @@ import java.util.stream.Collectors;
 
 public class XrayLicenseProcessor {
 
-    private static final String SUMMARY_ARTIFACT_URL = "https://artifactory/xray/api/v1/summary/artifact";
-
+    private final String baseUrl;
     private final Log log;
     private final String username;
     private final String password;
     private final Gson gson;
 
-    public XrayLicenseProcessor(Log log, String username, String password) {
+    public XrayLicenseProcessor(Log log, String username, String password, String artifactRepositoryUrl) {
         this.log = log;
         this.username = username;
         this.password = password;
+        this.baseUrl = artifactRepositoryUrl;
 
         this.gson = new Gson();
     }
@@ -74,7 +74,7 @@ public class XrayLicenseProcessor {
     }
 
     private HttpPost createHttpPostRequest(List<String> paths) {
-        HttpPost request = new HttpPost(SUMMARY_ARTIFACT_URL);
+        HttpPost request = new HttpPost(baseUrl + "/xray/api/v1/summary/artifact");
         request.setEntity(createJsonEntity(paths));
         request.setHeader("Content-Type", "application/json");
         request.setHeader("Authorization", createAuthHeader());

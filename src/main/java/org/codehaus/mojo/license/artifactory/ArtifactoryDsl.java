@@ -10,20 +10,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class ArtifactoryDsl {
-    private static final String BASE_URL = "https://artifactory/artifactory";
-    private final String username;
-    private final String password;
     private final Log log;
-
     private final Artifactory artifactory;
 
-    public ArtifactoryDsl(Log log, String username, String password){
+    public ArtifactoryDsl(Log log, String username, String password, String artifactRepositoryUrl){
         this.log = log;
-        this.username = username;
-        this.password = password;
 
         this.artifactory = ArtifactoryClientBuilder.create()
-                .setUrl(BASE_URL)
+                .setUrl(artifactRepositoryUrl + "/artifactory")
                 .setUsername(username)
                 .setPassword(password)
                 .build();
@@ -33,9 +27,6 @@ public class ArtifactoryDsl {
         try {
             List<RepoPath> repoPaths = artifactory.searches()
                     .artifactsByGavc()
-                    .groupId(project.getGroupId())
-                    .artifactId(project.getArtifactId())
-                    .version(project.getVersion())
                     .groupId(project.getGroupId())
                     .artifactId(project.getArtifactId())
                     .version(project.getVersion())

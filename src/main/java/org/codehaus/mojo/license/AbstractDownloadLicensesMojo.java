@@ -222,6 +222,9 @@ public abstract class AbstractDownloadLicensesMojo
     @Parameter
     List<String> licenseMerges = new ArrayList<>();
 
+    @Parameter(property = "artifactRepositoryUrl", required = true)
+    String artifactRepositoryUrl;
+
 
     // ----------------------------------------------------------------------
     // Plexus Components
@@ -391,7 +394,7 @@ public abstract class AbstractDownloadLicensesMojo
     private LicenseMap calculateLicenseMap(SortedMap<String, MavenProject> projectDependenciesMap, Set<MavenProject> dependencies) throws MojoFailureException {
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper(project, getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool, localRepository,
-                        project.getRemoteArtifactRepositories(), getLog());
+                        project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl);
         LicenseMap licenseMap = thirdPartyHelper.createLicenseMap(dependencies, proxyUrl);
 
         overrideLicenses(licenseMap, projectDependenciesMap);

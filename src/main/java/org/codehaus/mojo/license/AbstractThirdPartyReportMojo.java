@@ -235,6 +235,9 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     @Parameter( defaultValue = "${project}", readonly = true )
     private MavenProject project;
 
+    @Parameter( property = "artifactRepositoryUrl", required = true)
+    String artifactRepositoryUrl;
+
     // ----------------------------------------------------------------------
     // Plexus Components
     // ----------------------------------------------------------------------
@@ -473,7 +476,7 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
 
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper( project, encoding, verbose, dependenciesTool, thirdPartyTool, localRepository,
-                                             project.getRemoteArtifactRepositories(), getLog() );
+                                             project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl );
         // load dependencies of the project
         SortedMap<String, MavenProject> projectDependencies = thirdPartyHelper.loadDependencies( this );
 

@@ -406,6 +406,9 @@ public abstract class AbstractAddThirdPartyMojo
     @Parameter( property = "project.artifacts", required = true, readonly = true )
     Set<Artifact> dependencies;
 
+    @Parameter( property = "artifactRepositoryUrl", required = true )
+    String artifactRepositoryUrl;
+
     // ----------------------------------------------------------------------
     // Plexus components
     // ----------------------------------------------------------------------
@@ -718,7 +721,7 @@ public abstract class AbstractAddThirdPartyMojo
         {
             helper =
                     new DefaultThirdPartyHelper( getProject(), getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool,
-                                                 localRepository, remoteRepositories, getLog() );
+                                                 localRepository, remoteRepositories, getLog(), artifactRepositoryUrl );
         }
         return helper;
     }

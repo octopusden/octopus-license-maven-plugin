@@ -117,10 +117,13 @@ public class DefaultThirdPartyHelper
      * @param remoteRepositories maven remote repositories
      * @param log                logger
      */
+
+    private String artifactRepositoryUrl;
+
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log )
+                                    Log log, String artifactRepositoryUrl )
     {
         this.project = project;
         this.encoding = encoding;
@@ -131,6 +134,7 @@ public class DefaultThirdPartyHelper
         this.remoteRepositories = remoteRepositories;
         this.log = log;
         this.thirdPartyTool.setVerbose( verbose );
+        this.artifactRepositoryUrl = artifactRepositoryUrl;
     }
 
     /**
@@ -213,8 +217,8 @@ public class DefaultThirdPartyHelper
 
                 Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
-                ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, username, password);
-                XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, username, password);
+                ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, username, password, artifactRepositoryUrl);
+                XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, username, password, artifactRepositoryUrl);
 
                 for (MavenProject mavenProject: projectsToIterate) {
                     List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
