@@ -105,6 +105,10 @@ public class DefaultThirdPartyHelper
      */
     private static SortedMap<String, MavenProject> artifactCache;
 
+    private final String artifactRepositoryUrl;
+
+    private final String artifactRepositoryAccessToken;
+
     /**
      * Constructor of the helper.
      *
@@ -118,12 +122,10 @@ public class DefaultThirdPartyHelper
      * @param log                logger
      */
 
-    private String artifactRepositoryUrl;
-
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log, String artifactRepositoryUrl )
+                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken )
     {
         this.project = project;
         this.encoding = encoding;
@@ -135,6 +137,7 @@ public class DefaultThirdPartyHelper
         this.log = log;
         this.thirdPartyTool.setVerbose( verbose );
         this.artifactRepositoryUrl = artifactRepositoryUrl;
+        this.artifactRepositoryAccessToken = artifactRepositoryAccessToken;
     }
 
     /**
@@ -199,44 +202,35 @@ public class DefaultThirdPartyHelper
             thirdPartyTool.addLicense( licenseMap, project, project.getLicenses() );
         }
         updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
-        updateLicensesWithInfoFromXRay(licenseMap, proxyUrl);
+        updateLicensesWithInfoFromXRay(licenseMap);
         return licenseMap;
     }
 
-    private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap, String proxyUrl) {
-        log.info("Update licenses with info from XRay");
+    private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap) {
         SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
 
         if(mavenProjects != null) {
-            Properties xrayProperties = new Properties();
-            try (InputStream inputStream = DefaultThirdPartyHelper.class.getClassLoader().getResourceAsStream("xray.properties")) {
-                xrayProperties.load(inputStream);
+            log.info("Update licenses with info from XRay");
 
-                String username = xrayProperties.getProperty("xray.username");
-                String password = xrayProperties.getProperty("xray.password");
+            Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
-                Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
+            ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+            XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
 
-                ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, username, password, artifactRepositoryUrl);
-                XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, username, password, artifactRepositoryUrl);
+            for (MavenProject mavenProject: projectsToIterate) {
+                List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
 
-                for (MavenProject mavenProject: projectsToIterate) {
-                    List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
+                List<String> paths = projectRepoPaths
+                        .stream()
+                        .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
+                        .collect(Collectors.toList());
 
-                    List<String> paths = projectRepoPaths
-                            .stream()
-                            .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
-                            .collect(Collectors.toList());
+                List<License> licenses = licenseProcessor.getLicensesByProjectPaths(mavenProject, paths);
 
-                    List<License> licenses = licenseProcessor.getLicensesByProjectPaths(mavenProject, paths);
-
-                    if (!licenses.isEmpty()) {
-                        mavenProjects.remove(mavenProject);
-                        thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
-                    }
+                if (!licenses.isEmpty()) {
+                    mavenProjects.remove(mavenProject);
+                    thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
                 }
-            } catch (IOException e) {
-                log.info(e.getMessage());
             }
         }
     }

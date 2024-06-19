@@ -105,10 +105,6 @@
 
         <pluginPluginVersion>3.5</pluginPluginVersion>
         <plexusComponentVersion>1.7</plexusComponentVersion>
-
-        <!-- XRay user -->
-        <xray.username></xray.username>
-        <xray.password></xray.password>
     </properties>
 
     <dependencies>
@@ -320,13 +316,6 @@
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-
         <pluginManagement>
             <plugins>
                 <plugin>

@@ -21,14 +21,12 @@ public class XrayLicenseProcessor {
 
     private final String baseUrl;
     private final Log log;
-    private final String username;
-    private final String password;
+    private final String accessToken;
 
-    public XrayLicenseProcessor(Log log, String username, String password, String artifactRepositoryUrl) {
+    public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
         this.log = log;
-        this.username = username;
-        this.password = password;
         this.baseUrl = artifactRepositoryUrl + "/xray/api/v1";
+        this.accessToken = artifactRepositoryAccessToken;
     }
 
     public List<License> getLicensesByProjectPaths(MavenProject project, List<String> paths) {
@@ -44,7 +42,7 @@ public class XrayLicenseProcessor {
 
             Request request = Request.Post(url)
                     .addHeader("Content-Type", "application/json")
-                    .addHeader("Authorization", createAuthHeader())
+                    .addHeader("Authorization", "Bearer " + accessToken)
                     .body(requestBody);
             Response response = request.execute();
             HttpResponse httpResponse = response.returnResponse();
@@ -70,12 +68,6 @@ public class XrayLicenseProcessor {
         }
 
         return Collections.emptyList();
-    }
-
-    private String createAuthHeader() {
-        String auth = username + ":" + password;
-        byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes());
-        return "Basic " + new String(encodedAuth);
     }
 
     private List<License> getLicenseFromJson(String responseStr) throws IOException {

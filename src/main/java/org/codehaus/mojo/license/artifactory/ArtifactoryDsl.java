@@ -13,13 +13,12 @@ public class ArtifactoryDsl {
     private final Log log;
     private final Artifactory artifactory;
 
-    public ArtifactoryDsl(Log log, String username, String password, String artifactRepositoryUrl){
+    public ArtifactoryDsl(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken){
         this.log = log;
 
         this.artifactory = ArtifactoryClientBuilder.create()
                 .setUrl(artifactRepositoryUrl + "/artifactory")
-                .setUsername(username)
-                .setPassword(password)
+                .setAccessToken(artifactRepositoryAccessToken)
                 .build();
     }
 
