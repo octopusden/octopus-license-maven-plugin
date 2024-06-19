@@ -30,14 +30,18 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
+import org.codehaus.mojo.license.artifactory.ArtifactoryDsl;
 import org.codehaus.mojo.license.model.LicenseMap;
 import org.codehaus.mojo.license.nexus.LicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.SortedProperties;
+import org.codehaus.mojo.license.xray.XrayLicenseProcessor;
+import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.codehaus.mojo.license.model.LicenseMap.UNKNOWN_LICENSE_MESSAGE;
 
@@ -100,6 +104,10 @@ public class DefaultThirdPartyHelper
      */
     private static SortedMap<String, MavenProject> artifactCache;
 
+    private final String artifactRepositoryUrl;
+
+    private final String artifactRepositoryAccessToken;
+
     /**
      * Constructor of the helper.
      *
@@ -112,10 +120,11 @@ public class DefaultThirdPartyHelper
      * @param remoteRepositories maven remote repositories
      * @param log                logger
      */
+
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log )
+                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken )
     {
         this.project = project;
         this.encoding = encoding;
@@ -126,6 +135,8 @@ public class DefaultThirdPartyHelper
         this.remoteRepositories = remoteRepositories;
         this.log = log;
         this.thirdPartyTool.setVerbose( verbose );
+        this.artifactRepositoryUrl = artifactRepositoryUrl;
+        this.artifactRepositoryAccessToken = artifactRepositoryAccessToken;
     }
 
     /**
@@ -190,7 +201,37 @@ public class DefaultThirdPartyHelper
             thirdPartyTool.addLicense( licenseMap, project, project.getLicenses() );
         }
         updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
+        updateLicensesWithInfoFromXRay(licenseMap);
         return licenseMap;
+    }
+
+    private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap) {
+        SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
+
+        if(mavenProjects != null) {
+            log.info("Update licenses with info from XRay");
+
+            Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
+
+            ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+            XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+
+            for (MavenProject mavenProject: projectsToIterate) {
+                List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
+
+                List<String> paths = projectRepoPaths
+                        .stream()
+                        .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
+                        .collect(Collectors.toList());
+
+                List<License> licenses = licenseProcessor.getLicensesByProjectPaths(mavenProject, paths);
+
+                if (!licenses.isEmpty()) {
+                    mavenProjects.remove(mavenProject);
+                    thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
+                }
+            }
+        }
     }
 
     private void updateLicensesWithInfoFromNexus(LicenseMap licenseMap, String proxyUrl) {
