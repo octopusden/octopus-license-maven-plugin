@@ -228,7 +228,7 @@ public class DefaultThirdPartyHelper
                             .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
                             .collect(Collectors.toList());
 
-                    List<License> licenses = licenseProcessor.getLicensesByProject(paths);
+                    List<License> licenses = licenseProcessor.getLicensesByProjectPaths(mavenProject, paths);
 
                     if (!licenses.isEmpty()) {
                         mavenProjects.remove(mavenProject);
