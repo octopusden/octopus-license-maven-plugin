@@ -40,7 +40,6 @@ import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
