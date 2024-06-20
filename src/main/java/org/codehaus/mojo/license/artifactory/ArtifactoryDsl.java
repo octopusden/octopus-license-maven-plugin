@@ -29,9 +29,6 @@ public class ArtifactoryDsl {
                     .groupId(project.getGroupId())
                     .artifactId(project.getArtifactId())
                     .version(project.getVersion())
-//                    .groupId("com.airplus.commons")
-//                    .artifactId("eda-access")
-//                    .version("1.0.0")
                     .classifier("*.jar")
                     .doSearch();
 
