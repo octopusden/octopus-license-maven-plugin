@@ -32,7 +32,7 @@ public class XrayLicenseProcessor {
     public List<License> getLicensesByProjectPaths(MavenProject project, List<String> paths) {
         try {
             String url = baseUrl + "/summary/artifact";
-            log.info("Executing load available scan results " + url);
+            log.info("Xray scan results for project: " + toString(project));
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> payload = new HashMap<>();
@@ -56,7 +56,10 @@ public class XrayLicenseProcessor {
                 if (licenses.isEmpty()) {
                     log.info("No license found in Xray for " + toString(project));
                 } else {
-                    log.info("Xray licenses found for " + toString(project));
+                    log.info("Licenses found:" + toString(project));
+                    for (License license: licenses) {
+                        log.debug("\t" + license.getName() + " " + license.getUrl());
+                    }
                 }
 
                 return licenses;
@@ -78,7 +81,7 @@ public class XrayLicenseProcessor {
                 .filter(licenseData -> !Objects.equals(licenseData.getFullName(), LicenseMap.UNKNOWN_LICENSE_MESSAGE))
                 .map(licenseData -> {
                     License license = new License();
-                    license.setName(licenseData.getName());
+                    license.setName(licenseData.getFullName());
                     if (licenseData.getMoreInfoUrl() != null && !licenseData.getMoreInfoUrl().isEmpty()) {
                         license.setUrl(licenseData.getMoreInfoUrl().get(0));
                     }

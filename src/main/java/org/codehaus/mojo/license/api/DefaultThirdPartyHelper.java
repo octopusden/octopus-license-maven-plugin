@@ -206,10 +206,14 @@ public class DefaultThirdPartyHelper
     }
 
     private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap) {
+        log.info("Update licenses with info from XRay");
         SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
 
         if(mavenProjects != null) {
-            log.info("Update licenses with info from XRay");
+            log.info("Projects with unknown license:");
+            log.info(mavenProjects.toString());
+            log.debug("License map before update:");
+            log.debug(licenseMap.toString());
 
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
@@ -231,6 +235,11 @@ public class DefaultThirdPartyHelper
                     thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
                 }
             }
+
+            log.debug("License map after update:");
+            log.debug(licenseMap.toString());
+        } else {
+            log.info("No project with unknown license");
         }
     }
 
