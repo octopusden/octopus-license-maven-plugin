@@ -45,6 +45,9 @@ public class XrayLicenseProcessor {
                     .addHeader("Authorization", "Bearer " + accessToken)
                     .body(requestBody);
             Response response = request.execute();
+
+            log.debug("Execute " + url + " with paths " + paths.toString());
+
             HttpResponse httpResponse = response.returnResponse();
 
             int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -55,11 +58,6 @@ public class XrayLicenseProcessor {
 
                 if (licenses.isEmpty()) {
                     log.info("No license found in Xray for " + toString(project));
-                } else {
-                    log.info("Licenses found:" + toString(project));
-                    for (License license: licenses) {
-                        log.debug("\t" + license.getName() + " " + license.getUrl());
-                    }
                 }
 
                 return licenses;
@@ -77,6 +75,7 @@ public class XrayLicenseProcessor {
         ComponentInfo componentInfo = parseJSON(responseStr);
 
         return componentInfo.getArtifacts().stream()
+                .peek(artifact -> log.debug("\tRepo path: " + artifact.getGeneral().getPath()))
                 .flatMap(artifact -> artifact.getLicenses().stream())
                 .filter(licenseData -> !Objects.equals(licenseData.getFullName(), LicenseMap.UNKNOWN_LICENSE_MESSAGE))
                 .map(licenseData -> {
@@ -85,6 +84,9 @@ public class XrayLicenseProcessor {
                     if (licenseData.getMoreInfoUrl() != null && !licenseData.getMoreInfoUrl().isEmpty()) {
                         license.setUrl(licenseData.getMoreInfoUrl().get(0));
                     }
+
+                    log.debug("\t\t- " + license.getName());
+
                     return license;
                 })
                 .collect(Collectors.toList());

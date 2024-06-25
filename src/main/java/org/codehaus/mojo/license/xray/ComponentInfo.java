@@ -22,13 +22,33 @@ public class ComponentInfo {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ArtifactData {
         private List<LicenseData> licenses;
+        private GeneralData general;
 
         public List<LicenseData> getLicenses() {
             return licenses;
         }
+        public GeneralData getGeneral() {
+            return general;
+        }
 
         public void setLicenses(List<LicenseData> licenses) {
             this.licenses = licenses;
+        }
+        public void setGeneral(GeneralData general) {
+            this.general = general;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GeneralData {
+        private String path;
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
         }
     }
 

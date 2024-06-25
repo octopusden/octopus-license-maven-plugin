@@ -24,7 +24,7 @@ public class ArtifactoryDsl {
 
     public List<RepoPath> getProjectRepositoryPaths(MavenProject project) {
         try {
-            log.debug("Get repository path for project: " + project.toString());
+            log.debug("Execute repository path searches for project: " + project.toString());
 
             List<RepoPath> repoPaths = artifactory.searches()
                     .artifactsByGavc()
@@ -35,7 +35,7 @@ public class ArtifactoryDsl {
                     .doSearch();
 
             if (!repoPaths.isEmpty()) {
-                log.debug("Found artifact at:");
+                log.debug("Found repo paths:");
                 for (RepoPath repoPath : repoPaths) {
                     log.debug("\t" + "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath());
                 }
