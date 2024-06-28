@@ -30,18 +30,16 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
-import org.codehaus.mojo.license.artifactory.ArtifactoryDsl;
+import org.codehaus.mojo.license.ILicenseProcessor;
 import org.codehaus.mojo.license.model.LicenseMap;
 import org.codehaus.mojo.license.nexus.LicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.SortedProperties;
 import org.codehaus.mojo.license.xray.XrayLicenseProcessor;
-import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.codehaus.mojo.license.model.LicenseMap.UNKNOWN_LICENSE_MESSAGE;
 
@@ -217,18 +215,10 @@ public class DefaultThirdPartyHelper
 
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
-            ArtifactoryDsl artifactoryDsl = new ArtifactoryDsl(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
-            XrayLicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+            ILicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
 
             for (MavenProject mavenProject: projectsToIterate) {
-                List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(mavenProject);
-
-                List<String> paths = projectRepoPaths
-                        .stream()
-                        .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
-                        .collect(Collectors.toList());
-
-                List<License> licenses = licenseProcessor.getLicensesByProjectPaths(mavenProject, paths);
+                List<License> licenses = licenseProcessor.getLicensesByProject(mavenProject);
 
                 if (!licenses.isEmpty()) {
                     mavenProjects.remove(mavenProject);

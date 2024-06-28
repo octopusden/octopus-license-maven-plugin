@@ -11,26 +11,68 @@ import org.apache.http.util.EntityUtils;
 import org.apache.maven.model.License;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.mojo.license.ILicenseProcessor;
+import org.codehaus.mojo.license.artifactory.ArtifactoryDsl;
 import org.codehaus.mojo.license.model.LicenseMap;
+import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class XrayLicenseProcessor {
+public class XrayLicenseProcessor implements ILicenseProcessor {
 
     private final String baseUrl;
     private final Log log;
     private final String accessToken;
+    private final ArtifactoryDsl artifactoryDsl;
 
     public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
         this.log = log;
         this.baseUrl = artifactRepositoryUrl + "/xray/api/v1";
         this.accessToken = artifactRepositoryAccessToken;
+        this.artifactoryDsl = new ArtifactoryDsl(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
     }
 
-    public List<License> getLicensesByProjectPaths(MavenProject project, List<String> paths) {
+    private List<License> getLicenseFromJson(String responseStr) throws IOException {
+        ComponentInfo componentInfo = parseJSON(responseStr);
+
+        return componentInfo.getArtifacts().stream()
+                .peek(artifact -> log.debug("\tRepo path: " + artifact.getGeneral().getPath()))
+                .flatMap(artifact -> artifact.getLicenses().stream())
+                .filter(licenseData -> !Objects.equals(licenseData.getFullName(), LicenseMap.UNKNOWN_LICENSE_MESSAGE))
+                .map(licenseData -> {
+                    License license = new License();
+                    license.setName(licenseData.getFullName());
+                    if (licenseData.getMoreInfoUrl() != null && !licenseData.getMoreInfoUrl().isEmpty()) {
+                        license.setUrl(licenseData.getMoreInfoUrl().get(0));
+                    }
+
+                    log.debug("\t\t- " + license.getName());
+
+                    return license;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private ComponentInfo parseJSON(String data) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(data, ComponentInfo.class);
+    }
+
+    private String toString(MavenProject project) {
+        return project.getGroupId() + ":" + project.getArtifact();
+    }
+
+    @Override
+    public List<License> getLicensesByProject(MavenProject project) {
         try {
+            List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(project);
+            List<String> paths = projectRepoPaths
+                    .stream()
+                    .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
+                    .collect(Collectors.toList());
+
             String url = baseUrl + "/summary/artifact";
             log.info("Xray scan results for project: " + toString(project));
 
@@ -69,35 +111,5 @@ public class XrayLicenseProcessor {
         }
 
         return Collections.emptyList();
-    }
-
-    private List<License> getLicenseFromJson(String responseStr) throws IOException {
-        ComponentInfo componentInfo = parseJSON(responseStr);
-
-        return componentInfo.getArtifacts().stream()
-                .peek(artifact -> log.debug("\tRepo path: " + artifact.getGeneral().getPath()))
-                .flatMap(artifact -> artifact.getLicenses().stream())
-                .filter(licenseData -> !Objects.equals(licenseData.getFullName(), LicenseMap.UNKNOWN_LICENSE_MESSAGE))
-                .map(licenseData -> {
-                    License license = new License();
-                    license.setName(licenseData.getFullName());
-                    if (licenseData.getMoreInfoUrl() != null && !licenseData.getMoreInfoUrl().isEmpty()) {
-                        license.setUrl(licenseData.getMoreInfoUrl().get(0));
-                    }
-
-                    log.debug("\t\t- " + license.getName());
-
-                    return license;
-                })
-                .collect(Collectors.toList());
-    }
-
-    private ComponentInfo parseJSON(String data) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(data, ComponentInfo.class);
-    }
-
-    private String toString(MavenProject project) {
-        return project.getGroupId() + ":" + project.getArtifact();
     }
 }
