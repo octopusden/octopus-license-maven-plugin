@@ -5,16 +5,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.maven.model.License;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.license.ILicenseProcessor;
-import org.codehaus.mojo.license.artifactory.ArtifactoryDsl;
-import org.codehaus.mojo.license.model.LicenseMap;
-import org.jfrog.artifactory.client.model.RepoPath;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,29 +20,27 @@ public class XrayLicenseProcessor implements ILicenseProcessor {
     private final String baseUrl;
     private final Log log;
     private final String accessToken;
-    private final ArtifactoryDsl artifactoryDsl;
 
     public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
         this.log = log;
-        this.baseUrl = artifactRepositoryUrl + "/xray/api/v1";
+        this.baseUrl = artifactRepositoryUrl;
         this.accessToken = artifactRepositoryAccessToken;
-        this.artifactoryDsl = new ArtifactoryDsl(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
     }
 
-    private List<License> getLicenseFromJson(String responseStr) throws IOException {
+    List<License> getLicenseFromJson(String responseStr) throws IOException {
         ComponentInfo componentInfo = parseJSON(responseStr);
 
-        return componentInfo.getArtifacts().stream()
-                .peek(artifact -> log.debug("\tRepo path: " + artifact.getGeneral().getPath()))
-                .flatMap(artifact -> artifact.getLicenses().stream())
-                .filter(licenseData -> !Objects.equals(licenseData.getFullName(), LicenseMap.UNKNOWN_LICENSE_MESSAGE))
-                .map(licenseData -> {
-                    License license = new License();
-                    license.setName(licenseData.getFullName());
-                    if (licenseData.getMoreInfoUrl() != null && !licenseData.getMoreInfoUrl().isEmpty()) {
-                        license.setUrl(licenseData.getMoreInfoUrl().get(0));
-                    }
+        if (componentInfo.getData().isEmpty()) {
+            log.debug("\tCan't find any licenses");
+        } else {
+            log.debug("\tFound licenses:");
+        }
 
+        return componentInfo.getData().stream()
+                .map(componentData -> {
+                    License license = new License();
+
+                    license.setName(componentData.getLicenses());
                     log.debug("\t\t- " + license.getName());
 
                     return license;
@@ -55,40 +48,26 @@ public class XrayLicenseProcessor implements ILicenseProcessor {
                 .collect(Collectors.toList());
     }
 
-    private ComponentInfo parseJSON(String data) throws IOException {
+    ComponentInfo parseJSON(String data) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(data, ComponentInfo.class);
     }
 
     private String toString(MavenProject project) {
-        return project.getGroupId() + ":" + project.getArtifact();
+        return project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
     }
 
     @Override
     public List<License> getLicensesByProject(MavenProject project) {
         try {
-            List<RepoPath> projectRepoPaths = artifactoryDsl.getProjectRepositoryPaths(project);
-            List<String> paths = projectRepoPaths
-                    .stream()
-                    .map(repoPath -> "default/" + repoPath.getRepoKey() + "/" + repoPath.getItemPath())
-                    .collect(Collectors.toList());
+            String projectGAV = "gav:%2F%2F" + toString(project);
+            String url = baseUrl + "/ui/api/v1/xray/ui/scans_list/components?comp_id=" + projectGAV;
 
-            String url = baseUrl + "/summary/artifact";
-            log.info("Xray scan results for project: " + toString(project));
+            log.info("Execute: " + url);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("paths", paths);
-            String jsonPayload = objectMapper.writeValueAsString(payload);
-            StringEntity requestBody = new StringEntity(jsonPayload, ContentType.APPLICATION_JSON);
-
-            Request request = Request.Post(url)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .body(requestBody);
+            Request request = Request.Get(url)
+                    .addHeader("Authorization", "Bearer " + accessToken);
             Response response = request.execute();
-
-            log.debug("Execute " + url + " with paths " + paths.toString());
 
             HttpResponse httpResponse = response.returnResponse();
 
@@ -96,13 +75,7 @@ public class XrayLicenseProcessor implements ILicenseProcessor {
 
             if (statusCode == HttpStatus.SC_OK) {
                 String responseStr = EntityUtils.toString(httpResponse.getEntity());
-                List<License> licenses = getLicenseFromJson(responseStr);
-
-                if (licenses.isEmpty()) {
-                    log.info("No license found in Xray for " + toString(project));
-                }
-
-                return licenses;
+                return getLicenseFromJson(responseStr);
             } else {
                 log.info("Unknown status code for " + toString(project) + " : " + statusCode);
             }
