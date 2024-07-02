@@ -102,12 +102,24 @@ public class DefaultThirdPartyHelper
      */
     private static SortedMap<String, MavenProject> artifactCache;
 
+    /**
+     * Artifactory URL for Xray license info.
+     */
     private final String artifactRepositoryUrl;
 
+    /**
+     * Artifactory access token for Xray.
+     */
     private final String artifactRepositoryAccessToken;
 
+    /**
+     * Flag to use Sonatype Processor for license info.
+     */
     private final Boolean isUseSonatypeProcessor;
 
+    /**
+     * Flag to use Xray Processor for license info.
+     */
     private final Boolean isUseXrayProcessor;
 
     /**
