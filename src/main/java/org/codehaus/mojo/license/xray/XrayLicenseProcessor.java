@@ -77,6 +77,10 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     public List<License> getLicensesByProject(MavenProject project) {
         try {
             String projectGAV = "gav://" + toString(project);
+
+            // Note: This is not an official Xray API as documented.
+            // Alternatively, consider using the official API:
+            // https://jfrog.com/help/r/xray-rest-apis/find-component-by-name
             String url = baseUrl + "/ui/api/v1/xray/ui/scans_list/components?comp_id=" + projectGAV;
 
             log.info("Execute: " + url);

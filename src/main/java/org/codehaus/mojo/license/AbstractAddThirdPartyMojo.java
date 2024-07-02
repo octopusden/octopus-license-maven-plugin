@@ -406,15 +406,27 @@ public abstract class AbstractAddThirdPartyMojo
     @Parameter( property = "project.artifacts", required = true, readonly = true )
     Set<Artifact> dependencies;
 
+    /**
+     * Artifactory repository URL for retrieving license information with Xray.
+     */
     @Parameter( property = "artifactRepositoryUrl", required = true )
-    String artifactRepositoryUrl;
+    private String artifactRepositoryUrl;
 
+    /**
+     * Artifactory repository access token for retrieving license information with Xray.
+     */
     @Parameter( property = "artifactRepositoryAccessToken", required = true )
-    String artifactRepositoryAccessToken;
+    private String artifactRepositoryAccessToken;
 
+    /**
+     * A flag indicating whether to retrieve license information from the Sonatype Processor.
+     */
     @Parameter( property = "license.useSonatypeProcessor", defaultValue = "false" )
     private Boolean isUseSonatypeProcessor;
 
+    /**
+     * A flag indicating whether to retrieve license information from the Xray Processor.
+     */
     @Parameter( property = "license.useXrayProcessor", defaultValue = "true" )
     private Boolean isUseXrayProcessor;
 
