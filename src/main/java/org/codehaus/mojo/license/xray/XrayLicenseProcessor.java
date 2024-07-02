@@ -9,13 +9,13 @@ import org.apache.http.util.EntityUtils;
 import org.apache.maven.model.License;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.license.ILicenseProcessor;
+import org.codehaus.mojo.license.LicenseProcessor;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class XrayLicenseProcessor implements ILicenseProcessor {
+public class XrayLicenseProcessor implements LicenseProcessor {
 
     private final String baseUrl;
     private final Log log;

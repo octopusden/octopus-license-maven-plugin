@@ -30,7 +30,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
-import org.codehaus.mojo.license.ILicenseProcessor;
+import org.codehaus.mojo.license.LicenseProcessor;
 import org.codehaus.mojo.license.model.LicenseMap;
 import org.codehaus.mojo.license.nexus.SonatypeServiceLicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
@@ -215,7 +215,7 @@ public class DefaultThirdPartyHelper
 
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
-            ILicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+            LicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
 
             for (MavenProject mavenProject: projectsToIterate) {
                 List<License> licenses = licenseProcessor.getLicensesByProject(mavenProject);

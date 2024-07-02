@@ -5,6 +5,6 @@ import org.apache.maven.project.MavenProject;
 
 import java.util.List;
 
-public interface ILicenseProcessor {
+public interface LicenseProcessor {
     List<License> getLicensesByProject(MavenProject project);
 }
