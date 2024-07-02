@@ -10,8 +10,10 @@ import org.apache.maven.model.License;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.license.LicenseProcessor;
+import org.codehaus.mojo.license.model.LicenseMap;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     private final String baseUrl;
     private final Log log;
     private final String accessToken;
+    private static final String UNKNOWN_LICENSE_MESSAGE = "Unknown";
 
     public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
         this.log = log;
@@ -38,13 +41,11 @@ public class XrayLicenseProcessor implements LicenseProcessor {
         }
 
         return componentInfo.getData().stream()
-                .map(componentData -> {
-                    License license = new License();
-
-                    license.setName(componentData.getLicenses());
-                    log.debug("\t\t- " + license.getName());
-
-                    return license;
+                .flatMap(componentData -> {
+                    // Split the licenses string by comma and trim each resulting string
+                    return Arrays.stream(componentData.getLicenses().split(","))
+                            .map(String::trim)
+                            .map(this::createLicense);
                 })
                 .collect(Collectors.toList());
     }
@@ -56,6 +57,20 @@ public class XrayLicenseProcessor implements LicenseProcessor {
 
     private String toString(MavenProject project) {
         return project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
+    }
+
+    private License createLicense(String licenseName) {
+        License license = new License();
+
+//        Change the Unknown license name to the default Unknown License Message
+        if (licenseName.equals(UNKNOWN_LICENSE_MESSAGE)) {
+            license.setName(LicenseMap.UNKNOWN_LICENSE_MESSAGE);
+        } else {
+            license.setName(licenseName);
+        }
+
+        log.debug("\t\t- " + license.getName());
+        return license;
     }
 
     @Override
