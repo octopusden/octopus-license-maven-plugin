@@ -412,6 +412,12 @@ public abstract class AbstractAddThirdPartyMojo
     @Parameter( property = "artifactRepositoryAccessToken", required = true )
     String artifactRepositoryAccessToken;
 
+    @Parameter( property = "license.useSonatypeProcessor", defaultValue = "false" )
+    private Boolean isUseSonatypeProcessor;
+
+    @Parameter( property = "license.useXrayProcessor", defaultValue = "true" )
+    private Boolean isUseXrayProcessor;
+
     // ----------------------------------------------------------------------
     // Plexus components
     // ----------------------------------------------------------------------
@@ -724,7 +730,8 @@ public abstract class AbstractAddThirdPartyMojo
         {
             helper =
                     new DefaultThirdPartyHelper( getProject(), getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool,
-                                                 localRepository, remoteRepositories, getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken );
+                                                 localRepository, remoteRepositories, getLog(), artifactRepositoryUrl,
+                                                 artifactRepositoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
         }
         return helper;
     }

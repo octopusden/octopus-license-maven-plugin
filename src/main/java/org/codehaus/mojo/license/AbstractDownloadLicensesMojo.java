@@ -228,6 +228,12 @@ public abstract class AbstractDownloadLicensesMojo
     @Parameter(property = "artifactRepositoryAccessToken", required = true)
     String artifactRepositoryAccessToken;
 
+    @Parameter(property = "license.useSonatypeProcessor", defaultValue = "false")
+    private Boolean isUseSonatypeProcessor;
+
+    @Parameter(property = "license.useXrayProcessor", defaultValue = "true")
+    private Boolean isUseXrayProcessor;
+
 
     // ----------------------------------------------------------------------
     // Plexus Components
@@ -397,7 +403,8 @@ public abstract class AbstractDownloadLicensesMojo
     private LicenseMap calculateLicenseMap(SortedMap<String, MavenProject> projectDependenciesMap, Set<MavenProject> dependencies) throws MojoFailureException {
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper(project, getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool, localRepository,
-                        project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken);
+                        project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken,
+                        isUseSonatypeProcessor, isUseXrayProcessor);
         LicenseMap licenseMap = thirdPartyHelper.createLicenseMap(dependencies, proxyUrl);
 
         overrideLicenses(licenseMap, projectDependenciesMap);

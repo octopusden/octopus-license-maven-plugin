@@ -106,6 +106,10 @@ public class DefaultThirdPartyHelper
 
     private final String artifactRepositoryAccessToken;
 
+    private final Boolean isUseSonatypeProcessor;
+
+    private final Boolean isUseXrayProcessor;
+
     /**
      * Constructor of the helper.
      *
@@ -122,7 +126,8 @@ public class DefaultThirdPartyHelper
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken )
+                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken,
+                                    Boolean isUseSonatypeProcessor, Boolean isUseXrayProcessor)
     {
         this.project = project;
         this.encoding = encoding;
@@ -135,6 +140,8 @@ public class DefaultThirdPartyHelper
         this.thirdPartyTool.setVerbose( verbose );
         this.artifactRepositoryUrl = artifactRepositoryUrl;
         this.artifactRepositoryAccessToken = artifactRepositoryAccessToken;
+        this.isUseSonatypeProcessor = isUseSonatypeProcessor;
+        this.isUseXrayProcessor = isUseXrayProcessor;
     }
 
     /**
@@ -198,8 +205,17 @@ public class DefaultThirdPartyHelper
         {
             thirdPartyTool.addLicense( licenseMap, project, project.getLicenses() );
         }
-        updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
-        updateLicensesWithInfoFromXRay(licenseMap);
+
+        log.info("license.useSonatypeProcessor=" + isUseSonatypeProcessor + ", license.useXrayProcessor=" + isUseXrayProcessor);
+
+        if (isUseSonatypeProcessor) {
+            updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
+        }
+
+        if (isUseXrayProcessor) {
+            updateLicensesWithInfoFromXRay(licenseMap);
+        }
+
         return licenseMap;
     }
 
@@ -234,6 +250,7 @@ public class DefaultThirdPartyHelper
     }
 
     private void updateLicensesWithInfoFromNexus(LicenseMap licenseMap, String proxyUrl) {
+        log.info("Update licenses with info from Sonatype");
         SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
         if (mavenProjects != null) {
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);

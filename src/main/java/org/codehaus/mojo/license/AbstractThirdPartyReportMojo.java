@@ -241,6 +241,12 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     @Parameter( property = "artifactRepositoryAccessToken", required = true)
     String artifactRepositoryAccessToken;
 
+    @Parameter( property = "license.useSonatypeProcessor", defaultValue = "false" )
+    private Boolean isUseSonatypeProcessor;
+
+    @Parameter( property = "license.useXrayProcessor", defaultValue = "true" )
+    private Boolean isUseXrayProcessor;
+
     // ----------------------------------------------------------------------
     // Plexus Components
     // ----------------------------------------------------------------------
@@ -479,7 +485,8 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
 
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper( project, encoding, verbose, dependenciesTool, thirdPartyTool, localRepository,
-                                             project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken );
+                                             project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl,
+                                             artifactRepositoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
         // load dependencies of the project
         SortedMap<String, MavenProject> projectDependencies = thirdPartyHelper.loadDependencies( this );
 
