@@ -36,7 +36,7 @@ import org.apache.maven.model.License;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.mojo.license.model.LicenseMap;
-import org.codehaus.mojo.license.nexus.LicenseProcessor;
+import org.codehaus.mojo.license.nexus.SonatypeServiceLicenseProcessor;
 import org.codehaus.mojo.license.utils.FileUtil;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.MojoHelper;
@@ -405,7 +405,7 @@ public class DefaultThirdPartyTool
                 getLogger().warn( "No license url defined for " + id );
                 licenseKey = LicenseMap.UNKNOWN_LICENSE_MESSAGE;
             }
-            LicenseProcessor licenseProcessor = new LicenseProcessor(null, null);
+            SonatypeServiceLicenseProcessor licenseProcessor = new SonatypeServiceLicenseProcessor(null, null);
             List<String> licenseList = licenseProcessor.parseLicense(licenseKey);
             for (String licenseId : licenseList) {
                 getLogger().debug(licenseId + " -> " + project);

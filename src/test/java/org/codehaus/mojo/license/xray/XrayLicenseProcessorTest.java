@@ -4,7 +4,6 @@ import org.apache.maven.model.License;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.mojo.license.nexus.LicenseProcessorTest;
 import org.codehaus.plexus.util.IOUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -81,7 +80,7 @@ public class XrayLicenseProcessorTest {
 
 
     private String loadToString(String fileName) throws IOException {
-        InputStream resourceAsStream = LicenseProcessorTest.class.getResourceAsStream("/" + fileName);
+        InputStream resourceAsStream = XrayLicenseProcessorTest.class.getResourceAsStream("/" + fileName);
         return IOUtil.toString(resourceAsStream);
     }
 

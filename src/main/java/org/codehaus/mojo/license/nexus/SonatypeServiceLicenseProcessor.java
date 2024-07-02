@@ -19,7 +19,7 @@ import java.util.*;
  * Created
  * on 31.01.2018.
  */
-public class LicenseProcessor {
+public class SonatypeServiceLicenseProcessor {
 
     private static final List<String> IGNORED_LICENSES = Collections.unmodifiableList(Arrays.asList("Not-Declared", "Not Declared", "UNSPECIFIED", "No-Sources", "No Sources"));
 
@@ -29,7 +29,7 @@ public class LicenseProcessor {
 //    private final String proxyHost = "proxy";
 //    private final int proxyPort = 800;
 
-    public LicenseProcessor(Log log, String proxyUrl) {
+    public SonatypeServiceLicenseProcessor(Log log, String proxyUrl) {
         this.log = log;
         this.proxyUrl = proxyUrl;
     }

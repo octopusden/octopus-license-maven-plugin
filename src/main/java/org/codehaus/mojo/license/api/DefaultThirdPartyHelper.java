@@ -32,7 +32,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.mojo.license.ILicenseProcessor;
 import org.codehaus.mojo.license.model.LicenseMap;
-import org.codehaus.mojo.license.nexus.LicenseProcessor;
+import org.codehaus.mojo.license.nexus.SonatypeServiceLicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.SortedProperties;
 import org.codehaus.mojo.license.xray.XrayLicenseProcessor;
@@ -238,7 +238,7 @@ public class DefaultThirdPartyHelper
         if (mavenProjects != null) {
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
             for (MavenProject mavenProject : projectsToIterate) {
-                LicenseProcessor licenseProcessor = new LicenseProcessor(log, proxyUrl);
+                SonatypeServiceLicenseProcessor licenseProcessor = new SonatypeServiceLicenseProcessor(log, proxyUrl);
                 List<License> licences = licenseProcessor.getLicencesByProject(mavenProject);
                 if (!licences.isEmpty()) {
                     mavenProjects.remove(mavenProject);
