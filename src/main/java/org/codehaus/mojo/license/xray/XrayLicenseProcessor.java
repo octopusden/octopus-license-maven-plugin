@@ -12,7 +12,8 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.license.LicenseProcessor;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class XrayLicenseProcessor implements LicenseProcessor {
@@ -60,7 +61,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     @Override
     public List<License> getLicensesByProject(MavenProject project) {
         try {
-            String projectGAV = "gav:%2F%2F" + toString(project);
+            String projectGAV = "gav://" + toString(project);
             String url = baseUrl + "/ui/api/v1/xray/ui/scans_list/components?comp_id=" + projectGAV;
 
             log.info("Execute: " + url);
@@ -77,7 +78,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
                 String responseStr = EntityUtils.toString(httpResponse.getEntity());
                 return getLicenseFromJson(responseStr);
             } else {
-                log.info("Unknown status code for " + toString(project) + " : " + statusCode);
+                log.error("Unknown status code for " + toString(project) + " : " + statusCode);
             }
         } catch (IOException e) {
             log.error(e.getMessage());

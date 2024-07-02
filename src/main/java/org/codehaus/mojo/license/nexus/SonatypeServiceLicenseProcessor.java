@@ -63,7 +63,7 @@ public class SonatypeServiceLicenseProcessor {
             } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
                 getLog().info("license for " + toString(depMavenProject) + ":" + depMavenProject.getVersion() + " is not found in Nexus");
             } else {
-                getLog().info("Unknown status code for " + toString(depMavenProject) +  " : " + statusCode);
+                getLog().error("Unknown status code for " + toString(depMavenProject) +  " : " + statusCode);
             }
         } catch (IOException e) {
             getLog().error(e.getMessage());
