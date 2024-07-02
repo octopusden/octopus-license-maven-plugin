@@ -225,6 +225,9 @@ public class DefaultThirdPartyHelper
         }
 
         if (isUseXrayProcessor) {
+            if (artifactRepositoryUrl == null || artifactRepositoryAccessToken == null) {
+                throw new IllegalArgumentException("Either Environment variable or JVM argument for set 'artifactRepositoryUrl' and 'artifactRepositoryAccessToken' must be provided");
+            }
             updateLicensesWithInfoFromXRay(licenseMap);
         }
 

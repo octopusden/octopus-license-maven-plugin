@@ -409,13 +409,13 @@ public abstract class AbstractAddThirdPartyMojo
     /**
      * Artifactory repository URL for retrieving license information with Xray.
      */
-    @Parameter( property = "artifactRepositoryUrl", required = true )
+    @Parameter( property = "artifactRepositoryUrl" )
     private String artifactRepositoryUrl;
 
     /**
      * Artifactory repository access token for retrieving license information with Xray.
      */
-    @Parameter( property = "artifactRepositoryAccessToken", required = true )
+    @Parameter( property = "artifactRepositoryAccessToken" )
     private String artifactRepositoryAccessToken;
 
     /**
