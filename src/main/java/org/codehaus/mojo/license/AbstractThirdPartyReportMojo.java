@@ -250,13 +250,13 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     /**
      * A flag indicating whether to retrieve license information from the Sonatype Processor.
      */
-    @Parameter( property = "license.useSonatypeProcessor", defaultValue = "false" )
+    @Parameter( property = "license.useSonatypeProcessor", defaultValue = "true" )
     private Boolean isUseSonatypeProcessor;
 
     /**
      * A flag indicating whether to retrieve license information from the Xray Processor.
      */
-    @Parameter( property = "license.useXrayProcessor", defaultValue = "true" )
+    @Parameter( property = "license.useXrayProcessor", defaultValue = "false" )
     private Boolean isUseXrayProcessor;
 
     // ----------------------------------------------------------------------
