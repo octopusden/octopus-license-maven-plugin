@@ -406,6 +406,30 @@ public abstract class AbstractAddThirdPartyMojo
     @Parameter( property = "project.artifacts", required = true, readonly = true )
     Set<Artifact> dependencies;
 
+    /**
+     * Artifactory repository URL for retrieving license information with Xray.
+     */
+    @Parameter( property = "artifactRepositoryUrl" )
+    private String artifactRepositoryUrl;
+
+    /**
+     * Artifactory repository access token for retrieving license information with Xray.
+     */
+    @Parameter( property = "artifactRepositoryAccessToken" )
+    private String artifactRepositoryAccessToken;
+
+    /**
+     * A flag indicating whether to retrieve license information from the Sonatype Processor.
+     */
+    @Parameter( property = "license.useSonatypeProcessor", defaultValue = "true" )
+    private Boolean isUseSonatypeProcessor;
+
+    /**
+     * A flag indicating whether to retrieve license information from the Xray Processor.
+     */
+    @Parameter( property = "license.useXrayProcessor", defaultValue = "false" )
+    private Boolean isUseXrayProcessor;
+
     // ----------------------------------------------------------------------
     // Plexus components
     // ----------------------------------------------------------------------
@@ -718,7 +742,8 @@ public abstract class AbstractAddThirdPartyMojo
         {
             helper =
                     new DefaultThirdPartyHelper( getProject(), getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool,
-                                                 localRepository, remoteRepositories, getLog() );
+                                                 localRepository, remoteRepositories, getLog(), artifactRepositoryUrl,
+                                                 artifactRepositoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
         }
         return helper;
     }

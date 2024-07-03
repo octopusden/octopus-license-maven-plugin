@@ -222,6 +222,29 @@ public abstract class AbstractDownloadLicensesMojo
     @Parameter
     List<String> licenseMerges = new ArrayList<>();
 
+    /**
+     * Artifactory repository URL for retrieving license information with Xray.
+     */
+    @Parameter(property = "artifactRepositoryUrl")
+    private String artifactRepositoryUrl;
+
+    /**
+     * Artifactory repository access token for retrieving license information with Xray.
+     */
+    @Parameter(property = "artifactRepositoryAccessToken")
+    private String artifactRepositoryAccessToken;
+
+    /**
+     * A flag indicating whether to retrieve license information from the Sonatype Processor.
+     */
+    @Parameter(property = "license.useSonatypeProcessor", defaultValue = "true")
+    private Boolean isUseSonatypeProcessor;
+
+    /**
+     * A flag indicating whether to retrieve license information from the Xray Processor.
+     */
+    @Parameter(property = "license.useXrayProcessor", defaultValue = "false")
+    private Boolean isUseXrayProcessor;
 
     // ----------------------------------------------------------------------
     // Plexus Components
@@ -391,7 +414,8 @@ public abstract class AbstractDownloadLicensesMojo
     private LicenseMap calculateLicenseMap(SortedMap<String, MavenProject> projectDependenciesMap, Set<MavenProject> dependencies) throws MojoFailureException {
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper(project, getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool, localRepository,
-                        project.getRemoteArtifactRepositories(), getLog());
+                        project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken,
+                        isUseSonatypeProcessor, isUseXrayProcessor);
         LicenseMap licenseMap = thirdPartyHelper.createLicenseMap(dependencies, proxyUrl);
 
         overrideLicenses(licenseMap, projectDependenciesMap);

@@ -30,10 +30,12 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
+import org.codehaus.mojo.license.LicenseProcessor;
 import org.codehaus.mojo.license.model.LicenseMap;
-import org.codehaus.mojo.license.nexus.LicenseProcessor;
+import org.codehaus.mojo.license.nexus.SonatypeServiceLicenseProcessor;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.SortedProperties;
+import org.codehaus.mojo.license.xray.XrayLicenseProcessor;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,6 +103,26 @@ public class DefaultThirdPartyHelper
     private static SortedMap<String, MavenProject> artifactCache;
 
     /**
+     * Artifactory URL for Xray license info.
+     */
+    private final String artifactRepositoryUrl;
+
+    /**
+     * Artifactory access token for Xray.
+     */
+    private final String artifactRepositoryAccessToken;
+
+    /**
+     * Flag to use Sonatype Processor for license info.
+     */
+    private final Boolean isUseSonatypeProcessor;
+
+    /**
+     * Flag to use Xray Processor for license info.
+     */
+    private final Boolean isUseXrayProcessor;
+
+    /**
      * Constructor of the helper.
      *
      * @param project            Current maven project
@@ -112,10 +134,12 @@ public class DefaultThirdPartyHelper
      * @param remoteRepositories maven remote repositories
      * @param log                logger
      */
+
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log )
+                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken,
+                                    Boolean isUseSonatypeProcessor, Boolean isUseXrayProcessor)
     {
         this.project = project;
         this.encoding = encoding;
@@ -126,6 +150,10 @@ public class DefaultThirdPartyHelper
         this.remoteRepositories = remoteRepositories;
         this.log = log;
         this.thirdPartyTool.setVerbose( verbose );
+        this.artifactRepositoryUrl = artifactRepositoryUrl;
+        this.artifactRepositoryAccessToken = artifactRepositoryAccessToken;
+        this.isUseSonatypeProcessor = isUseSonatypeProcessor;
+        this.isUseXrayProcessor = isUseXrayProcessor;
     }
 
     /**
@@ -189,16 +217,60 @@ public class DefaultThirdPartyHelper
         {
             thirdPartyTool.addLicense( licenseMap, project, project.getLicenses() );
         }
-        updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
+
+        log.info("license.useSonatypeProcessor=" + isUseSonatypeProcessor + ", license.useXrayProcessor=" + isUseXrayProcessor);
+
+        if (isUseSonatypeProcessor) {
+            updateLicensesWithInfoFromNexus(licenseMap, proxyUrl);
+        }
+
+        if (isUseXrayProcessor) {
+            if (artifactRepositoryUrl == null || artifactRepositoryAccessToken == null) {
+                throw new IllegalArgumentException("Either Environment variable or JVM argument for set 'artifactRepositoryUrl' and 'artifactRepositoryAccessToken' must be provided");
+            }
+            updateLicensesWithInfoFromXRay(licenseMap);
+        }
+
         return licenseMap;
     }
 
+    private void updateLicensesWithInfoFromXRay(LicenseMap licenseMap) {
+        log.info("Update licenses with info from XRay");
+        SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
+
+        if(mavenProjects != null) {
+            log.info("Projects with unknown license:");
+            log.info(mavenProjects.toString());
+            log.debug("License map before update:");
+            log.debug(licenseMap.toString());
+
+            Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
+
+            LicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+
+            for (MavenProject mavenProject: projectsToIterate) {
+                List<License> licenses = licenseProcessor.getLicensesByProject(mavenProject);
+
+                if (!licenses.isEmpty()) {
+                    mavenProjects.remove(mavenProject);
+                    thirdPartyTool.addLicense(licenseMap, mavenProject, licenses);
+                }
+            }
+
+            log.debug("License map after update:");
+            log.debug(licenseMap.toString());
+        } else {
+            log.info("No project with unknown license");
+        }
+    }
+
     private void updateLicensesWithInfoFromNexus(LicenseMap licenseMap, String proxyUrl) {
+        log.info("Update licenses with info from Sonatype");
         SortedSet<MavenProject> mavenProjects = licenseMap.get(UNKNOWN_LICENSE_MESSAGE);
         if (mavenProjects != null) {
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
             for (MavenProject mavenProject : projectsToIterate) {
-                LicenseProcessor licenseProcessor = new LicenseProcessor(log, proxyUrl);
+                SonatypeServiceLicenseProcessor licenseProcessor = new SonatypeServiceLicenseProcessor(log, proxyUrl);
                 List<License> licences = licenseProcessor.getLicencesByProject(mavenProject);
                 if (!licences.isEmpty()) {
                     mavenProjects.remove(mavenProject);

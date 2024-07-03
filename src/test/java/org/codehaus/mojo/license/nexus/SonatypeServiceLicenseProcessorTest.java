@@ -18,9 +18,9 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created on 30.01.2018.
  */
-public class LicenseProcessorTest {
+public class SonatypeServiceLicenseProcessorTest {
 
-    private LicenseProcessor licenseProcessor = new LicenseProcessor(null, null);
+    private SonatypeServiceLicenseProcessor licenseProcessor = new SonatypeServiceLicenseProcessor(null, null);
 
     @Test
     public void test() throws IOException {
@@ -30,7 +30,7 @@ public class LicenseProcessorTest {
     }
 
     private String loadToString(String fileName) throws IOException {
-        InputStream resourceAsStream = LicenseProcessorTest.class.getResourceAsStream("/" + fileName);
+        InputStream resourceAsStream = SonatypeServiceLicenseProcessorTest.class.getResourceAsStream("/" + fileName);
         return IOUtil.toString(resourceAsStream);
     }
 
