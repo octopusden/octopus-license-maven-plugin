@@ -23,7 +23,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     private final String baseUrl;
     private final Log log;
     private final String accessToken;
-    private static final String UNKNOWN_LICENSE_MESSAGE = "Unknown";
+    private static final String UNKNOWN_XRAY_LICENSE = "Unknown";
 
     public XrayLicenseProcessor(Log log, String artifactoryUrl, String artifactoryAccessToken) {
         this.log = log;
@@ -63,7 +63,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
         License license = new License();
 
 //        Change the Unknown license name to the default Unknown License Message
-        if (licenseName.equals(UNKNOWN_LICENSE_MESSAGE)) {
+        if (licenseName.equals(UNKNOWN_XRAY_LICENSE)) {
             license.setName(LicenseMap.UNKNOWN_LICENSE_MESSAGE);
         } else {
             license.setName(licenseName);
