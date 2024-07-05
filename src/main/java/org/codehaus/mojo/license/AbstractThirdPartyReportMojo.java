@@ -238,14 +238,14 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     /**
      * Artifactory repository URL for retrieving license information with Xray.
      */
-    @Parameter( property = "artifactRepositoryUrl" )
-    private String artifactRepositoryUrl;
+    @Parameter( property = "artifactoryUrl" )
+    private String artifactoryUrl;
 
     /**
      * Artifactory repository access token for retrieving license information with Xray.
      */
-    @Parameter( property = "artifactRepositoryAccessToken" )
-    private String artifactRepositoryAccessToken;
+    @Parameter( property = "artifactoryAccessToken" )
+    private String artifactoryAccessToken;
 
     /**
      * A flag indicating whether to retrieve license information from the Sonatype Processor.
@@ -497,8 +497,8 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
 
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper( project, encoding, verbose, dependenciesTool, thirdPartyTool, localRepository,
-                                             project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl,
-                                             artifactRepositoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
+                                             project.getRemoteArtifactRepositories(), getLog(), artifactoryUrl,
+                                             artifactoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
         // load dependencies of the project
         SortedMap<String, MavenProject> projectDependencies = thirdPartyHelper.loadDependencies( this );
 

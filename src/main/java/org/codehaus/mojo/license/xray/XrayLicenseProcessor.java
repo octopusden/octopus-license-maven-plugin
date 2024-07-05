@@ -25,10 +25,10 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     private final String accessToken;
     private static final String UNKNOWN_LICENSE_MESSAGE = "Unknown";
 
-    public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
+    public XrayLicenseProcessor(Log log, String artifactoryUrl, String artifactoryAccessToken) {
         this.log = log;
-        this.baseUrl = artifactRepositoryUrl;
-        this.accessToken = artifactRepositoryAccessToken;
+        this.baseUrl = artifactoryUrl;
+        this.accessToken = artifactoryAccessToken;
     }
 
     List<License> getLicenseFromJson(String responseStr) throws IOException {

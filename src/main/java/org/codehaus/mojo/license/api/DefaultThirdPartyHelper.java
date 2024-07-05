@@ -105,12 +105,12 @@ public class DefaultThirdPartyHelper
     /**
      * Artifactory URL for Xray license info.
      */
-    private final String artifactRepositoryUrl;
+    private final String artifactoryUrl;
 
     /**
      * Artifactory access token for Xray.
      */
-    private final String artifactRepositoryAccessToken;
+    private final String artifactoryAccessToken;
 
     /**
      * Flag to use Sonatype Processor for license info.
@@ -138,7 +138,7 @@ public class DefaultThirdPartyHelper
     public DefaultThirdPartyHelper( MavenProject project, String encoding, boolean verbose,
                                     DependenciesTool dependenciesTool, ThirdPartyTool thirdPartyTool,
                                     ArtifactRepository localRepository, List<ArtifactRepository> remoteRepositories,
-                                    Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken,
+                                    Log log, String artifactoryUrl, String artifactoryAccessToken,
                                     Boolean isUseSonatypeProcessor, Boolean isUseXrayProcessor)
     {
         this.project = project;
@@ -150,8 +150,8 @@ public class DefaultThirdPartyHelper
         this.remoteRepositories = remoteRepositories;
         this.log = log;
         this.thirdPartyTool.setVerbose( verbose );
-        this.artifactRepositoryUrl = artifactRepositoryUrl;
-        this.artifactRepositoryAccessToken = artifactRepositoryAccessToken;
+        this.artifactoryUrl = artifactoryUrl;
+        this.artifactoryAccessToken = artifactoryAccessToken;
         this.isUseSonatypeProcessor = isUseSonatypeProcessor;
         this.isUseXrayProcessor = isUseXrayProcessor;
     }
@@ -225,8 +225,8 @@ public class DefaultThirdPartyHelper
         }
 
         if (isUseXrayProcessor) {
-            if (artifactRepositoryUrl == null || artifactRepositoryAccessToken == null) {
-                throw new IllegalArgumentException("Either Environment variable or JVM argument for set 'artifactRepositoryUrl' and 'artifactRepositoryAccessToken' must be provided");
+            if (artifactoryUrl == null || artifactoryAccessToken == null) {
+                throw new IllegalArgumentException("Either Environment variable or JVM argument for set 'artifactoryUrl' and 'artifactoryAccessToken' must be provided");
             }
             updateLicensesWithInfoFromXRay(licenseMap);
         }
@@ -246,7 +246,7 @@ public class DefaultThirdPartyHelper
 
             Set<MavenProject> projectsToIterate = new TreeSet<>(mavenProjects);
 
-            LicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactRepositoryUrl, artifactRepositoryAccessToken);
+            LicenseProcessor licenseProcessor = new XrayLicenseProcessor(log, artifactoryUrl, artifactoryAccessToken);
 
             for (MavenProject mavenProject: projectsToIterate) {
                 List<License> licenses = licenseProcessor.getLicensesByProject(mavenProject);

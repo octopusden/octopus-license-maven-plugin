@@ -22,8 +22,8 @@ public class XrayLicenseProcessorTest {
 
     @Before
     public void setUp() {
-        artifactUrl = System.getProperty("artifactRepositoryUrl");
-        accessToken = System.getProperty("artifactRepositoryAccessToken");
+        artifactUrl = System.getProperty("artifactoryUrl");
+        accessToken = System.getProperty("artifactoryAccessToken");
         licenseProcessor = new XrayLicenseProcessor(log, artifactUrl, accessToken);
     }
 

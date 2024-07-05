@@ -225,14 +225,14 @@ public abstract class AbstractDownloadLicensesMojo
     /**
      * Artifactory repository URL for retrieving license information with Xray.
      */
-    @Parameter(property = "artifactRepositoryUrl")
-    private String artifactRepositoryUrl;
+    @Parameter(property = "artifactoryUrl")
+    private String artifactoryUrl;
 
     /**
      * Artifactory repository access token for retrieving license information with Xray.
      */
-    @Parameter(property = "artifactRepositoryAccessToken")
-    private String artifactRepositoryAccessToken;
+    @Parameter(property = "artifactoryAccessToken")
+    private String artifactoryAccessToken;
 
     /**
      * A flag indicating whether to retrieve license information from the Sonatype Processor.
@@ -414,7 +414,7 @@ public abstract class AbstractDownloadLicensesMojo
     private LicenseMap calculateLicenseMap(SortedMap<String, MavenProject> projectDependenciesMap, Set<MavenProject> dependencies) throws MojoFailureException {
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper(project, getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool, localRepository,
-                        project.getRemoteArtifactRepositories(), getLog(), artifactRepositoryUrl, artifactRepositoryAccessToken,
+                        project.getRemoteArtifactRepositories(), getLog(), artifactoryUrl, artifactoryAccessToken,
                         isUseSonatypeProcessor, isUseXrayProcessor);
         LicenseMap licenseMap = thirdPartyHelper.createLicenseMap(dependencies, proxyUrl);
 
