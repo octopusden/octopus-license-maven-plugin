@@ -52,6 +52,15 @@ public class XrayLicenseProcessorTest {
     }
 
     @Test
+    public void testParseNullDataJSON() throws IOException {
+        String data = loadToString("xrayLicenseEmptyInfo.json");
+        ComponentInfo componentInfo = licenseProcessor.parseJSON(data);
+
+        Assert.assertNotNull(componentInfo);
+        Assert.assertEquals(0, componentInfo.getData().size());
+    }
+
+    @Test
     public void testGetLicenseFromJson() throws IOException {
         String data = loadToString("xrayLicenseInfo.json");
 
@@ -76,6 +85,21 @@ public class XrayLicenseProcessorTest {
         Assert.assertNotNull(licenses);
         Assert.assertEquals(1, licenses.size());
         Assert.assertEquals("Apache-2.0", licenses.get(0).getName());
+    }
+
+    @Test
+    public void testGetNullLicenseByProject() {
+        if (artifactUrl == null || accessToken == null) return;
+
+        MavenProject mavenProject = new MavenProject();
+        mavenProject.setGroupId("com.oracle.jdbc");
+        mavenProject.setArtifactId("ojdbc8");
+        mavenProject.setVersion("18.3.0.0");
+
+        List<License> licenses = licenseProcessor.getLicensesByProject(mavenProject);
+
+        Assert.assertNotNull(licenses);
+        Assert.assertEquals(0, licenses.size());
     }
 
 
