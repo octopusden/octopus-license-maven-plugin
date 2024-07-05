@@ -64,7 +64,7 @@ public class XrayLicenseProcessorTest {
     public void testGetLicenseFromJson() throws IOException {
         String data = loadToString("xrayLicenseInfo.json");
 
-        List<License> licenses = licenseProcessor.getLicenseFromJson(data);
+        List<License> licenses = licenseProcessor.getLicenseFromJson(data, new MavenProject());
 
         Assert.assertEquals(2, licenses.size());
         Assert.assertEquals("license 1", licenses.get(0).getName());
