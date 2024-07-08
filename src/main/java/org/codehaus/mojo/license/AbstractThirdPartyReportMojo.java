@@ -236,13 +236,13 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
     private MavenProject project;
 
     /**
-     * Artifactory repository URL for retrieving license information with Xray.
+     * Artifactory URL for retrieving license information with Xray.
      */
     @Parameter( property = "artifactoryUrl" )
     private String artifactoryUrl;
 
     /**
-     * Artifactory repository access token for retrieving license information with Xray.
+     * Artifactory access token for retrieving license information with Xray.
      */
     @Parameter( property = "artifactoryAccessToken" )
     private String artifactoryAccessToken;
