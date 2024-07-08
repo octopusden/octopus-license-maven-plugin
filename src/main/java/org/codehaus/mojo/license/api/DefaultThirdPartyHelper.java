@@ -228,6 +228,10 @@ public class DefaultThirdPartyHelper
         }
 
         if (isUseXrayProcessor) {
+            if (artifactoryUrl == null || artifactoryAccessToken == null) {
+                throw new IllegalArgumentException("Either Environment variable or JVM argument for set 'artifactoryUrl' and 'artifactoryAccessToken' must be provided");
+            }
+
             try {
                 new URL(artifactoryUrl);
             } catch (MalformedURLException e) {
