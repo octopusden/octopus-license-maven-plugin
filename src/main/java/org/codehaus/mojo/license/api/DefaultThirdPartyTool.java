@@ -717,7 +717,7 @@ public class DefaultThirdPartyTool
         licenseMap.removeEmptyLicenses();
     }
 
-    private List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache, VersionRangeFactory versionRangeFactory, NumericVersionFactory numericVersionFactory) {
+    public List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache, VersionRangeFactory versionRangeFactory, NumericVersionFactory numericVersionFactory) {
         String[] overrideProjectGAV = id.split("--");
 
         if (overrideProjectGAV.length != 3) {
