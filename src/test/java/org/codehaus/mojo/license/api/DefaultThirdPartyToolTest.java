@@ -11,9 +11,6 @@ import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.octopusden.releng.versions.NumericVersionFactory;
-import org.octopusden.releng.versions.VersionNames;
-import org.octopusden.releng.versions.VersionRangeFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +21,10 @@ import java.util.*;
 public class DefaultThirdPartyToolTest {
 
     private DefaultThirdPartyTool thirdPartyTool;
-    private SortedMap<String, MavenProject> artifactCache;
-    private final VersionNames versionNames = new VersionNames("", "", "");
-    private final VersionRangeFactory versionRangeFactory = new VersionRangeFactory(versionNames);
-    private final NumericVersionFactory numericVersionFactory = new NumericVersionFactory(versionNames);
+    private SortedMap<String, MavenProject> artifactCacheScalarVersionFormat;
+    private String[] projectArtifactsScalarVersionFormat;
+    private SortedMap<String, MavenProject> artifactCacheMvnVersionRangeFormat;
+    private String[] projectArtifactsMvnVersionRangeFormat;
 
     @Before
     public void setUp() throws InvalidVersionSpecificationException {
@@ -39,122 +36,119 @@ public class DefaultThirdPartyToolTest {
     }
 
     @Test
-    public void testExactVersionMatch() {
-        String id = "group--artifact--1.0";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals(id, toString(projects.get(0)));
-    }
-
-    @Test
-    public void testSingleVersionRangeWithExactMatch() {
-        String id = "group--artifact--[1.0]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group--artifact--1.0", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testVersionRangeInclusive() {
-        String id = "group2--artifact2--[1-0,1-2]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group2--artifact2--1.2", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testVersionRangeExclusiveEnd() {
-        String id = "group3--artifact3--[1-3,1-5)";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group3--artifact3--1.3", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testVersionRangeExclusiveStartAndEnd() {
-        String id = "group4--artifact4--(1-3,1-5)";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group4--artifact4--1.4", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testVersionRangeExclusiveStartInclusiveEnd() {
-        String id = "group5--artifact5--(1-3,1-5]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group5--artifact5--1.5", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testMultipleRangesMatch() {
-        String id = "group5--artifact5--[1-0,1-2),(1-3,1-5]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(1, projects.size());
-        Assert.assertEquals("group5--artifact5--1.5", toString(projects.get(0)));
-    }
-
-    @Test
-    public void testVersionRangeNoMatchingVersion() {
-        String id = "group--artifact--[1-3,1-5]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(0, projects.size());
-    }
-
-    @Test
-    public void testMultipleRangesNoMatchingVersion() {
-        String id = "group2--artifact2--[1-0,1-2),(1-3,1-5]";
-
-        List<MavenProject> projects = thirdPartyTool.getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
-
-        Assert.assertEquals(0, projects.size());
-    }
-
-    @Test
-    public void testOverrideLicenses() throws URISyntaxException, IOException {
-        URL resource = getClass().getClassLoader().getResource("license-version-range.properties");
+    public void testOverrideLicensesWithScalarVersionFormat() throws URISyntaxException, IOException {
+        URL resource = getClass().getClassLoader().getResource("license-scalar-version-format.properties");
 
         if (resource != null) {
             LicenseMap licenseMap = new LicenseMap();
             File propertiesFile = new File(resource.toURI());
 
-            thirdPartyTool.overrideLicenses(licenseMap, artifactCache, "UTF-8", propertiesFile);
+            thirdPartyTool.overrideLicenses(licenseMap, artifactCacheScalarVersionFormat, "UTF-8", propertiesFile);
 
-            Assert.assertEquals(5, licenseMap.size());
+            Assert.assertEquals(3, licenseMap.size());
             Assert.assertEquals(1, licenseMap.get("License 1").size());
-            Assert.assertTrue(licenseMap.get("License 1").contains(artifactCache.get("group--artifact--1.0")));
+            Assert.assertTrue(licenseMap.get("License 1").contains(artifactCacheScalarVersionFormat.get("group1--artifact1--1.0")));
             Assert.assertEquals(1, licenseMap.get("License 2").size());
-            Assert.assertTrue(licenseMap.get("License 2").contains(artifactCache.get("group2--artifact2--1.2")));
+            Assert.assertTrue(licenseMap.get("License 2").contains(artifactCacheScalarVersionFormat.get("group2--artifact2--2.0.RELEASE")));
             Assert.assertEquals(1, licenseMap.get("License 3").size());
-            Assert.assertTrue(licenseMap.get("License 3").contains(artifactCache.get("group3--artifact3--1.3")));
-            Assert.assertEquals(1, licenseMap.get("License 4").size());
-            Assert.assertTrue(licenseMap.get("License 4").contains(artifactCache.get("group4--artifact4--1.4")));
-            Assert.assertEquals(1, licenseMap.get("License 5").size());
-            Assert.assertTrue(licenseMap.get("License 5").contains(artifactCache.get("group5--artifact5--1.5")));
+            Assert.assertTrue(licenseMap.get("License 3").contains(artifactCacheScalarVersionFormat.get("group3--artifact3--3.2.1")));
+        }
+    }
+
+    @Test
+    public void testOverrideLicensesWithMvnVersionRangeFormat() throws URISyntaxException, IOException {
+        URL resource = getClass().getClassLoader().getResource("license-mvn-version-range-format.properties");
+
+        if (resource != null) {
+            LicenseMap licenseMap = new LicenseMap();
+            File propertiesFile = new File(resource.toURI());
+
+            thirdPartyTool.overrideLicenses(licenseMap, artifactCacheMvnVersionRangeFormat, "UTF-8", propertiesFile);
+
+            Assert.assertEquals(4, licenseMap.size());
+
+            Assert.assertEquals(11, licenseMap.get("License 1").size());
+            SortedSet<MavenProject> projectsLicense1 = licenseMap.get("License 1");
+            for (int i = 0; i < 11; i++) {
+                Assert.assertTrue(projectsLicense1.contains(artifactCacheMvnVersionRangeFormat.get(projectArtifactsMvnVersionRangeFormat[i])));
+            }
+
+            Assert.assertEquals(4, licenseMap.get("License 2").size());
+            SortedSet<MavenProject> projectsLicense2 = licenseMap.get("License 2");
+            for (int i = 11; i < 15; i++) {
+                Assert.assertTrue(projectsLicense2.contains(artifactCacheMvnVersionRangeFormat.get(projectArtifactsMvnVersionRangeFormat[i])));
+            }
+
+            Assert.assertEquals(7, licenseMap.get("License 3").size());
+            SortedSet<MavenProject> projectsLicense3 = licenseMap.get("License 3");
+            for (int i = 15; i < 22; i++) {
+                Assert.assertTrue(projectsLicense3.contains(artifactCacheMvnVersionRangeFormat.get(projectArtifactsMvnVersionRangeFormat[i])));
+            }
+
+            Assert.assertEquals(8, licenseMap.get("License 4").size());
+            SortedSet<MavenProject> projectsLicense4 = licenseMap.get("License 4");
+            for (int i = 22; i < 30; i++) {
+                Assert.assertTrue(projectsLicense4.contains(artifactCacheMvnVersionRangeFormat.get(projectArtifactsMvnVersionRangeFormat[i])));
+            }
         }
     }
 
     private void initializeArtifactCache() throws InvalidVersionSpecificationException {
-        String[] projectArtifacts = {"group--artifact--1.0", "group2--artifact2--1.2", "group3--artifact3--1.3", "group4--artifact4--1.4", "group5--artifact5--1.5"};
+        projectArtifactsScalarVersionFormat = new String[]{
+                "group1--artifact1--1.0",
+                "group2--artifact2--2.0.RELEASE",
+                "group3--artifact3--3.2.1",
 
-        artifactCache = new TreeMap<>();
+                // Versions not covered by the licenses properties file will not be included in the license map
+                "group1--artifact1--3.0"
+        };
+        artifactCacheScalarVersionFormat = new TreeMap<>();
+        addProjectToArtifact(artifactCacheScalarVersionFormat, projectArtifactsScalarVersionFormat);
 
+        projectArtifactsMvnVersionRangeFormat = new String[]{
+                "group1--artifact1--8.1",
+                "group2--artifact2--7.7.1-966",
+                "group3--artifact3--2.9",
+                "group4--artifact4--7.7.1-965",
+                "group5--artifact5--1.5",
+                "group6--artifact6--1.5",
+                "group7--artifact7--4.84.5",
+                "group8--artifact8--0.6.160",
+                "group9--artifact9--4.84",
+                "group10--artifact10--1.40",
+                "group11--artifact11--2.4.46.84",
+                "group12--artifact12--3.5.0",
+                "group13--artifact13--3.0.22-0000",
+                "group14--artifact14--0.7.100",
+                "group15--artifact15--2.4.20",
+                "group16--artifact16--5.5",
+                "group17--artifact17--8.1",
+                "group18--artifact18--1.2.1",
+                "group19--artifact19--2.0",
+                "group20--artifact20--38.50",
+                "group21--artifact21--1.1.5",
+                "group22--artifact22--2.4.53-250",
+                "group23--artifact23--1.0.13",
+                "group24--artifact24--3.44.29",
+                "group25--artifact25--1.2.336",
+                "group26--artifact26--1.0.35-0009",
+                "group27--artifact27--2.250",
+                "group28--artifact28--2.313",
+                "group29--artifact29--52.0.1-5",
+                "group30--artifact30--1.2.200",
+
+                // Versions not covered by the licenses properties file will not be included in the license map
+                "group1--artifact1--8",
+                "group13--artifact13--3.0.21",
+                "group21--artifact21--1.2.0",
+                "group29--artifact29--52.0.1.6",
+
+        };
+        artifactCacheMvnVersionRangeFormat = new TreeMap<>();
+        addProjectToArtifact(artifactCacheMvnVersionRangeFormat, projectArtifactsMvnVersionRangeFormat);
+    }
+
+    private void addProjectToArtifact(SortedMap<String, MavenProject> cache, String[] projectArtifacts) throws InvalidVersionSpecificationException {
         for (String artifact : projectArtifacts) {
             String[] parts = artifact.split("--");
 
@@ -181,13 +175,8 @@ public class DefaultThirdPartyToolTest {
                 project.setVersion(version);
                 project.setArtifact(projectArtifact);
 
-                artifactCache.put(artifact, project);
+                cache.put(artifact, project);
             }
         }
     }
-
-    private String toString(MavenProject project) {
-        return project.getGroupId() + "--" + project.getArtifactId() + "--" + project.getVersion();
-    }
-
 }
