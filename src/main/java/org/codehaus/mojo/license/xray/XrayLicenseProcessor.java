@@ -23,19 +23,19 @@ public class XrayLicenseProcessor implements LicenseProcessor {
     private final String baseUrl;
     private final Log log;
     private final String accessToken;
-    private static final String UNKNOWN_LICENSE_MESSAGE = "Unknown";
+    private static final String UNKNOWN_XRAY_LICENSE = "Unknown";
 
-    public XrayLicenseProcessor(Log log, String artifactRepositoryUrl, String artifactRepositoryAccessToken) {
+    public XrayLicenseProcessor(Log log, String artifactoryUrl, String artifactoryAccessToken) {
         this.log = log;
-        this.baseUrl = artifactRepositoryUrl;
-        this.accessToken = artifactRepositoryAccessToken;
+        this.baseUrl = artifactoryUrl;
+        this.accessToken = artifactoryAccessToken;
     }
 
-    List<License> getLicenseFromJson(String responseStr) throws IOException {
+    List<License> getLicenseFromJson(String responseStr, MavenProject project) throws IOException {
         ComponentInfo componentInfo = parseJSON(responseStr);
 
         if (componentInfo.getData().isEmpty()) {
-            log.debug("\tCan't find any licenses");
+            log.info("\tXRray couldn't find any licenses for: " + toString(project));
         } else {
             log.debug("\tFound licenses:");
         }
@@ -63,7 +63,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
         License license = new License();
 
 //        Change the Unknown license name to the default Unknown License Message
-        if (licenseName.equals(UNKNOWN_LICENSE_MESSAGE)) {
+        if (licenseName.equals(UNKNOWN_XRAY_LICENSE)) {
             license.setName(LicenseMap.UNKNOWN_LICENSE_MESSAGE);
         } else {
             license.setName(licenseName);
@@ -95,7 +95,7 @@ public class XrayLicenseProcessor implements LicenseProcessor {
 
             if (statusCode == HttpStatus.SC_OK) {
                 String responseStr = EntityUtils.toString(httpResponse.getEntity());
-                return getLicenseFromJson(responseStr);
+                return getLicenseFromJson(responseStr, project);
             } else {
                 log.error("Unknown status code for " + toString(project) + " : " + statusCode);
             }

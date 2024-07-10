@@ -3,6 +3,8 @@ package org.codehaus.mojo.license.xray;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 
 import java.util.List;
 
@@ -15,6 +17,7 @@ public class ComponentInfo {
         return data;
     }
 
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     public void setData(List<ComponentData> data) {
         this.data = data;
     }
