@@ -731,12 +731,8 @@ public class DefaultThirdPartyTool
         // Ensure versionIdRanges is in the correct format ( must start and end with [ or ( and ) or ] )
         String versionIdRanges = overrideVersionId.matches("^[\\[(].*[\\])]$") ? overrideVersionId : "[" + overrideVersionId + "]";
 
-        // Compile the project name pattern (group and artifact ID)
-        String projectNamePatternString = String.format("^%s--%s--.*$", overrideGroupId, overrideArtifactId);
-        Pattern projectNamePattern = Pattern.compile(projectNamePatternString);
-
         return artifactCache.entrySet().stream()
-                .filter(entry -> projectNamePattern.matcher(entry.getKey()).matches())
+                .filter(entry -> entry.getValue().getGroupId().equals(overrideGroupId) && entry.getValue().getArtifactId().equals(overrideArtifactId))
                 .filter(entry -> {
                     getLogger().debug("Version check for " + entry.getKey());
                     getLogger().debug("\tVersion ranges: " + versionIdRanges);
