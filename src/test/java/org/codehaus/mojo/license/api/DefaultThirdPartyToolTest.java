@@ -25,6 +25,8 @@ public class DefaultThirdPartyToolTest {
     private String[] projectArtifactsScalarVersionFormat;
     private SortedMap<String, MavenProject> artifactCacheMvnVersionRangeFormat;
     private String[] projectArtifactsMvnVersionRangeFormat;
+    private SortedMap<String, MavenProject> artifactCacheMixVersionFormat;
+    private String[] projectArtifactsMixVersionFormat;
 
     @Before
     public void setUp() throws InvalidVersionSpecificationException {
@@ -93,6 +95,32 @@ public class DefaultThirdPartyToolTest {
         }
     }
 
+    @Test
+    public void testOverrideLicensesWithMixVersionFormat() throws URISyntaxException, IOException {
+        URL resource = getClass().getClassLoader().getResource("license-mix-version-format.properties");
+
+        if (resource != null) {
+            LicenseMap licenseMap = new LicenseMap();
+            File propertiesFile = new File(resource.toURI());
+
+            thirdPartyTool.overrideLicenses(licenseMap, artifactCacheMixVersionFormat, "UTF-8", propertiesFile);
+
+            Assert.assertEquals(2, licenseMap.size());
+
+            Assert.assertEquals(2, licenseMap.get("License 1").size());
+            SortedSet<MavenProject> projectsLicense1 = licenseMap.get("License 1");
+            for (int i = 0; i < 2; i++) {
+                Assert.assertTrue(projectsLicense1.contains(artifactCacheMixVersionFormat.get(projectArtifactsMixVersionFormat[i])));
+            }
+
+            Assert.assertEquals(4, licenseMap.get("License 2").size());
+            SortedSet<MavenProject> projectsLicense2 = licenseMap.get("License 2");
+            for (int i = 2; i < 6; i++) {
+                Assert.assertTrue(projectsLicense2.contains(artifactCacheMixVersionFormat.get(projectArtifactsMixVersionFormat[i])));
+            }
+        }
+    }
+
     private void initializeArtifactCache() throws InvalidVersionSpecificationException {
         projectArtifactsScalarVersionFormat = new String[]{
                 "group1--artifact1--1.0",
@@ -146,6 +174,23 @@ public class DefaultThirdPartyToolTest {
         };
         artifactCacheMvnVersionRangeFormat = new TreeMap<>();
         addProjectToArtifact(artifactCacheMvnVersionRangeFormat, projectArtifactsMvnVersionRangeFormat);
+
+        projectArtifactsMixVersionFormat = new String[]{
+                "group1--artifact1--1.0",
+                "group1--artifact1--2.0",
+
+                "group12--artifact12--3.5.0",
+                "group13--artifact13--3.0.22-0000",
+                "group14--artifact14--0.7.100",
+                "group15--artifact15--2.4.20",
+
+                // Versions not covered by the licenses properties file will not be included in the license map
+                "group1--artifact1--3.0",
+                "group1--artifact1--8",
+                "group13--artifact13--3.0.21",
+        };
+        artifactCacheMixVersionFormat = new TreeMap<>();
+        addProjectToArtifact(artifactCacheMixVersionFormat, projectArtifactsMixVersionFormat);
     }
 
     private void addProjectToArtifact(SortedMap<String, MavenProject> cache, String[] projectArtifacts) throws InvalidVersionSpecificationException {
