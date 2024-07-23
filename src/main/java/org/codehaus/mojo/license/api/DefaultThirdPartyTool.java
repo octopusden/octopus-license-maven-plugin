@@ -138,6 +138,13 @@ public class DefaultThirdPartyTool
      */
     private final Comparator<MavenProject> projectComparator = MojoHelper.newMavenProjectComparator();
 
+    /**
+     * Version Range.
+     */
+    private final VersionNames versionNames = new VersionNames("", "", "");
+    private final VersionRangeFactory versionRangeFactory = new VersionRangeFactory(versionNames);
+    private final NumericVersionFactory numericVersionFactory = new NumericVersionFactory(versionNames);
+
     private boolean verbose;
 
     /**
@@ -628,10 +635,6 @@ public class DefaultThirdPartyTool
             overrideMappings.load( overrideFile );
         }
 
-        VersionNames versionNames = new VersionNames("", "", "");
-        VersionRangeFactory versionRangeFactory = new VersionRangeFactory(versionNames);
-        NumericVersionFactory numericVersionFactory = new NumericVersionFactory(versionNames);
-
         for ( Object o : overrideMappings.keySet() )
         {
             String id = (String) o;
@@ -677,10 +680,6 @@ public class DefaultThirdPartyTool
         } catch (final IOException ioException) {
             throw new IllegalStateException(ioException);
         }
-
-        VersionNames versionNames = new VersionNames("", "", "");
-        VersionRangeFactory versionRangeFactory = new VersionRangeFactory(versionNames);
-        NumericVersionFactory numericVersionFactory = new NumericVersionFactory(versionNames);
 
         for ( Object o : overrideMappings.keySet() )
         {
