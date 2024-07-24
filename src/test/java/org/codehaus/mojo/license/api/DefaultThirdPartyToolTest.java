@@ -16,7 +16,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 
 public class DefaultThirdPartyToolTest {
 
