@@ -639,7 +639,7 @@ public class DefaultThirdPartyTool
         {
             String id = (String) o;
 
-            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
+            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache);
 
             if (projects.isEmpty()) {
                 getLogger().warn( "dependency [" + id + "] does not exist in project." );
@@ -685,7 +685,7 @@ public class DefaultThirdPartyTool
         {
             String id = (String) o;
 
-            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache, versionRangeFactory, numericVersionFactory);
+            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache);
 
             if ( projects.isEmpty() )
             {
@@ -716,10 +716,12 @@ public class DefaultThirdPartyTool
         licenseMap.removeEmptyLicenses();
     }
 
-    public List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache, VersionRangeFactory versionRangeFactory, NumericVersionFactory numericVersionFactory) {
+    public List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache) {
+        getLogger().debug("get project for dependency [" + id + "]");
         String[] overrideProjectGAV = id.split("--");
 
         if (overrideProjectGAV.length != 3) {
+            getLogger().warn("id [" + id + "] format is invalid, no project found");
             return Collections.emptyList();
         }
 
