@@ -45,6 +45,9 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
+import org.octopusden.releng.versions.NumericVersionFactory;
+import org.octopusden.releng.versions.VersionNames;
+import org.octopusden.releng.versions.VersionRangeFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,6 +68,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.codehaus.mojo.license.api.FreeMarkerHelper.TEMPLATE;
 
@@ -133,6 +137,13 @@ public class DefaultThirdPartyTool
      * Maven project comparator.
      */
     private final Comparator<MavenProject> projectComparator = MojoHelper.newMavenProjectComparator();
+
+    /**
+     * Version Range.
+     */
+    private final VersionNames versionNames = new VersionNames("", "", "");
+    private final VersionRangeFactory versionRangeFactory = new VersionRangeFactory(versionNames);
+    private final NumericVersionFactory numericVersionFactory = new NumericVersionFactory(versionNames);
 
     private boolean verbose;
 
@@ -628,9 +639,9 @@ public class DefaultThirdPartyTool
         {
             String id = (String) o;
 
-            MavenProject project = artifactCache.get( id );
-            if ( project == null )
-            {
+            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache);
+
+            if (projects.isEmpty()) {
                 getLogger().warn( "dependency [" + id + "] does not exist in project." );
                 continue;
             }
@@ -646,11 +657,12 @@ public class DefaultThirdPartyTool
                 continue;
             }
 
-            licenseMap.removeProject( project );
+            projects.forEach(project -> {
+                licenseMap.removeProject( project );
 
-            // add license in map
-            addLicense( licenseMap, project, licenses );
-
+                // add license in map
+                addLicense( licenseMap, project, licenses );
+            });
         }
         licenseMap.removeEmptyLicenses();
     }
@@ -673,8 +685,9 @@ public class DefaultThirdPartyTool
         {
             String id = (String) o;
 
-            MavenProject project = artifactCache.get( id );
-            if ( project == null )
+            List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache);
+
+            if ( projects.isEmpty() )
             {
                 getLogger().debug( "dependency [" + id + "] not found in project" );
                 continue;
@@ -690,15 +703,54 @@ public class DefaultThirdPartyTool
                 // empty license means not fill, skip it
                 continue;
             }
-            getLogger().info("overriding for " + project + ", " + Arrays.toString(licenses));
-            licenseMap.removeProject( project );
 
-            // add license in map
-            addLicense( licenseMap, project, licenses );
+            projects.forEach(project -> {
+                getLogger().info("overriding for " + project + ", " + Arrays.toString(licenses));
+                licenseMap.removeProject( project );
+
+                // add license in map
+                addLicense( licenseMap, project, licenses );
+            });
 
         }
         licenseMap.removeEmptyLicenses();
     }
+
+    public List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache) {
+        getLogger().debug("get project for dependency [" + id + "]");
+        String[] overrideProjectGAV = id.split("--");
+
+        if (overrideProjectGAV.length != 3) {
+            getLogger().warn("id [" + id + "] format is invalid, no project found");
+            return Collections.emptyList();
+        }
+
+        String overrideGroupId = overrideProjectGAV[0];
+        String overrideArtifactId = overrideProjectGAV[1];
+        String overrideVersionId = overrideProjectGAV[2];
+
+        // Ensure versionIdRanges is in the correct format ( must start and end with [ or ( and ) or ] )
+        String versionIdRanges = overrideVersionId.matches("^[\\[(].*[\\])]$") ? overrideVersionId : "[" + overrideVersionId + "]";
+
+        return artifactCache.entrySet().stream()
+                .filter(entry -> entry.getValue().getGroupId().equals(overrideGroupId) && entry.getValue().getArtifactId().equals(overrideArtifactId))
+                .filter(entry -> {
+                    getLogger().debug("Version check for " + entry.getKey());
+                    getLogger().debug("\tVersion ranges: " + versionIdRanges);
+                    getLogger().debug("\tProject version: " + entry.getValue().getVersion());
+
+                    boolean isVersionValid = versionRangeFactory.create(versionIdRanges).containsVersion(
+                            numericVersionFactory.create(entry.getValue().getVersion())
+                    );
+
+                    getLogger().debug("\tIs version valid: " + isVersionValid);
+
+                    return isVersionValid;
+                })
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
 
     /**
      * {@inheritDoc}
