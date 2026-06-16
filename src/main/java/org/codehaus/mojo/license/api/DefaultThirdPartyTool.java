@@ -919,7 +919,9 @@ public class DefaultThirdPartyTool
                     groupId, artifactId, version, null, type, classifier, null );
             if ( e.getResult() != null && !e.getResult().isResolved() )
             {
-                throw new ArtifactNotFoundException( e.getMessage(), placeholder );
+                ArtifactNotFoundException anfe = new ArtifactNotFoundException( e.getMessage(), placeholder );
+                anfe.initCause( e );
+                throw anfe;
             }
             throw new ArtifactResolutionException( e.getMessage(), placeholder, e );
         }
