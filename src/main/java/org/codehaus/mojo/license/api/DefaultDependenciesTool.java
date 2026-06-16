@@ -73,6 +73,9 @@ public class DefaultDependenciesTool
     implements DependenciesTool
 {
 
+    /**
+     * Message used when an invalid expression pattern is found.
+     */
     public static final String INVALID_PATTERN_MESSAGE =
         "The pattern specified by expression <%s> seems to be invalid.";
     protected static final ObjectMapper MAPPER = new ObjectMapper();
@@ -131,10 +134,12 @@ public class DefaultDependenciesTool
 
         if ( configuration.isIncludeTransitiveDependencies() )
         {
+            // All project dependencies
             depArtifacts = project.getArtifacts();
         }
         else
         {
+            // Only direct project dependencies
             depArtifacts = project.getDependencyArtifacts();
         }
 
@@ -162,17 +167,22 @@ public class DefaultDependenciesTool
 
             if ( DefaultThirdPartyTool.LICENSE_DB_TYPE.equals( artifact.getType() ) )
             {
+                // the special dependencies for license databases don't count.
+                // Note that this will still see transitive deps of a license db; so using the build helper inside of another project
+                // to make them will be noisy.
                 continue;
             }
 
             String scope = artifact.getScope();
             if ( CollectionUtils.isNotEmpty( includedScopes ) && !includedScopes.contains( scope ) )
             {
+                // not in included scopes
                 continue;
             }
 
             if ( excludeScopes.contains( scope ) )
             {
+                // in excluded scopes
                 continue;
             }
 
@@ -185,9 +195,12 @@ public class DefaultDependenciesTool
                 log.info( "detected artifact " + id );
             }
 
+            // Check if the project should be included
+            // If there is no specified artifacts and group to include, include all
             boolean isToInclude = haveNoIncludedArtifacts && haveNoIncludedGroups ||
                 isIncludable( artifact, includedGroupPattern, includedArtifactPattern );
 
+            // Check if the project should be excluded
             boolean isToExclude = isToInclude && haveExclusions &&
                 isExcludable( artifact, excludedGroupPattern, excludedArtifactPattern );
 
@@ -200,7 +213,10 @@ public class DefaultDependenciesTool
                 continue;
             }
 
-            MavenProject depMavenProject = localCache.get( id );
+            MavenProject depMavenProject;
+
+            // try to get project from cache
+            depMavenProject = localCache.get( id );
 
             if ( depMavenProject != null )
             {
@@ -211,6 +227,7 @@ public class DefaultDependenciesTool
             }
             else
             {
+                // build project
                 try
                 {
                     MavenSession session = legacySupport.getSession();
@@ -232,15 +249,18 @@ public class DefaultDependenciesTool
                     log.info( "add dependency [" + id + "]" );
                 }
 
+                // store it also in cache
                 localCache.put(id, depMavenProject);
             }
 
+            // keep the project
             result.put(id, depMavenProject);
 
             excludeArtifacts.remove(artifact.getId());
             includeArtifacts.put(artifact.getId(), artifact);
         }
 
+        // exclude artifacts from the result that contain excluded artifacts in the dependency trail
         if (excludeTransitiveDependencies) {
             for (Map.Entry<String, Artifact> entry : includeArtifacts.entrySet()) {
                 List<String> dependencyTrail = entry.getValue().getDependencyTrail();
