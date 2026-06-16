@@ -867,6 +867,7 @@ public class DefaultThirdPartyTool
             result = resolveArtifactFile( project.getGroupId(), project.getArtifactId(), project.getVersion(),
                                           DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, localRepository, repositories );
 
+            // we use zero length files to avoid re-resolution (see below)
             if ( result.length() == 0 )
             {
                 getLogger().debug( "Skipped third party descriptor" );
@@ -876,7 +877,8 @@ public class DefaultThirdPartyTool
         {
             getLogger().debug( "Unable to locate third party files descriptor : " + e );
 
-            // Build a placeholder path in the local repo so we don't re-resolve on the next run.
+            // we can afford to write an empty descriptor here as we don't expect it to turn up later in the remote
+            // repository, because the parent was already released (and snapshots are updated automatically if changed)
             org.apache.maven.artifact.Artifact placeholder = new org.apache.maven.artifact.DefaultArtifact(
                     project.getGroupId(), project.getArtifactId(), project.getVersion(),
                     null, DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, null );
@@ -901,6 +903,7 @@ public class DefaultThirdPartyTool
                                       List<ArtifactRepository> repositories )
             throws ArtifactResolutionException, ArtifactNotFoundException
     {
+        // TODO: proper type handling, or handle as metadata rather than a plain artifact
         List<RemoteRepository> aetherRepos = RepositoryUtils.toRepos( repositories );
         DefaultArtifact aetherArtifact = new DefaultArtifact( groupId, artifactId, classifier, type, version );
         ArtifactRequest request = new ArtifactRequest( aetherArtifact, aetherRepos, null );

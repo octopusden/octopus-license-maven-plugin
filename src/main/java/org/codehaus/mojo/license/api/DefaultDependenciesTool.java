@@ -332,12 +332,22 @@ public class DefaultDependenciesTool
                 .writeValue(thirdPartyDepsFile, listedDependencies);
     }
 
+    /**
+     * Tests if the given project is includeable against a groupdId pattern and a artifact pattern.
+     *
+     * @param project                 the project to test
+     * @param includedGroupPattern    the include group pattern
+     * @param includedArtifactPattern the include artifact pattenr
+     * @return {@code true} if the project is includavble, {@code false} otherwise
+     */
     protected boolean isIncludable( Artifact project, Pattern includedGroupPattern, Pattern includedArtifactPattern )
     {
         Logger log = getLogger();
 
+        // check if the groupId of the project should be included
         if ( includedGroupPattern != null )
         {
+            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = includedGroupPattern.matcher( project.getGroupId() );
@@ -356,8 +366,10 @@ public class DefaultDependenciesTool
             }
         }
 
+        // check if the artifactId of the project should be included
         if ( includedArtifactPattern != null )
         {
+            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = includedArtifactPattern.matcher( project.getArtifactId() );
@@ -378,12 +390,22 @@ public class DefaultDependenciesTool
         return false;
     }
 
+    /**
+     * Tests if the given project is excludable against a groupdId pattern and a artifact pattern.
+     *
+     * @param project                 the project to test
+     * @param excludedGroupPattern    the exlcude group pattern
+     * @param excludedArtifactPattern the exclude artifact pattenr
+     * @return {@code true} if the project is excludable, {@code false} otherwise
+     */
     protected boolean isExcludable( Artifact project, Pattern excludedGroupPattern, Pattern excludedArtifactPattern )
     {
         Logger log = getLogger();
 
+        // check if the groupId of the project should be included
         if ( excludedGroupPattern != null )
         {
+            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = excludedGroupPattern.matcher( project.getGroupId() );
@@ -402,8 +424,10 @@ public class DefaultDependenciesTool
             }
         }
 
+        // check if the artifactId of the project should be included
         if ( excludedArtifactPattern != null )
         {
+            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = excludedArtifactPattern.matcher( project.getArtifactId() );
