@@ -275,6 +275,9 @@ public class DefaultDependenciesTool
         if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() ) )
         {
             MavenSession session = legacySupport.getSession();
+            // ProjectDependenciesResolver resolves reactor modules automatically via
+            // MavenSession#getProjectDependencyGraph(), so the manual reactorProjectDependencies
+            // substitution that was required by the old MavenMetadataSource API is no longer needed.
             DefaultDependencyResolutionRequest request =
                 new DefaultDependencyResolutionRequest( project, session.getRepositorySession() );
             try
@@ -288,7 +291,7 @@ public class DefaultDependenciesTool
             }
             catch ( DependencyResolutionException e )
             {
-                throw new DependenciesToolException( e.getCause() );
+                throw new DependenciesToolException( e );
             }
         }
     }
