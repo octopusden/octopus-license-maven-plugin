@@ -1,7 +1,7 @@
 package org.codehaus.mojo.license.nexus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.emory.mathcs.backport.java.util.Collections;
+import java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

@@ -26,13 +26,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.model.License;
+import org.apache.maven.plugin.LegacySupport;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.mojo.license.model.LicenseMap;
@@ -45,6 +45,11 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.AbstractLogEnabled;
 import org.codehaus.plexus.logging.Logger;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResult;
 import org.octopusden.releng.versions.NumericVersionFactory;
 import org.octopusden.releng.versions.VersionNames;
 import org.octopusden.releng.versions.VersionRangeFactory;
@@ -110,17 +115,13 @@ public class DefaultThirdPartyTool
     // Components
     // ----------------------------------------------------------------------
 
-    /**
-     * The component that is used to resolve additional artifacts required.
-     */
+    /** Provides MavenSession access from within a Plexus component. */
     @Requirement
-    private ArtifactResolver artifactResolver;
+    private LegacySupport legacySupport;
 
-    /**
-     * The component used for creating artifact instances.
-     */
+    /** Aether repository system for artifact resolution (replaces the removed ArtifactResolver). */
     @Requirement
-    private ArtifactFactory artifactFactory;
+    private RepositorySystem aetherRepositorySystem;
 
     /**
      * Maven ProjectHelper.
@@ -816,8 +817,8 @@ public class DefaultThirdPartyTool
                                    SortedProperties result )
             throws IOException, ArtifactNotFoundException, ArtifactResolutionException
     {
-        artifactResolver.resolve( dep, repositories, localRepository );
-        File propFile = dep.getFile();
+        File propFile = resolveArtifactFile( dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
+                                             dep.getType(), dep.getClassifier(), localRepository, repositories );
         getLogger().info(
                 String.format( "Loading global license map from %s: %s", dep.toString(), propFile.getAbsolutePath() ) );
         SortedProperties props = new SortedProperties( "utf-8" );
@@ -863,10 +864,9 @@ public class DefaultThirdPartyTool
         File result;
         try
         {
-            result = resolveArtifact( project.getGroupId(), project.getArtifactId(), project.getVersion(),
-                                      DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, localRepository, repositories );
+            result = resolveArtifactFile( project.getGroupId(), project.getArtifactId(), project.getVersion(),
+                                          DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, localRepository, repositories );
 
-            // we use zero length files to avoid re-resolution (see below)
             if ( result.length() == 0 )
             {
                 getLogger().debug( "Skipped third party descriptor" );
@@ -876,37 +876,50 @@ public class DefaultThirdPartyTool
         {
             getLogger().debug( "Unable to locate third party files descriptor : " + e );
 
-            Artifact artifact = e.getArtifact() == null
-                    ? artifactFactory.createArtifactWithClassifier(
+            // Build a placeholder path in the local repo so we don't re-resolve on the next run.
+            org.apache.maven.artifact.Artifact placeholder = new org.apache.maven.artifact.DefaultArtifact(
                     project.getGroupId(), project.getArtifactId(), project.getVersion(),
-                    DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER)
-                    : e.getArtifact();
-
-            // we can afford to write an empty descriptor here as we don't expect it to turn up later in the remote
-            // repository, because the parent was already released (and snapshots are updated automatically if changed)
-            result = new File(localRepository.getBasedir(), localRepository.pathOf(artifact));
+                    null, DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, null );
+            result = new File( localRepository.getBasedir(), localRepository.pathOf( placeholder ) );
         }
 
         return result;
     }
 
     public File resolveMissingLicensesDescriptor( String groupId, String artifactId, String version,
-                                                  ArtifactRepository localRepository, List<ArtifactRepository> repositories )
+                                                  ArtifactRepository localRepository,
+                                                  List<ArtifactRepository> repositories )
             throws IOException, ArtifactResolutionException, ArtifactNotFoundException
     {
-        return resolveArtifact( groupId, artifactId, version, DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, localRepository, repositories );
+        return resolveArtifactFile( groupId, artifactId, version, DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER,
+                                    localRepository, repositories );
     }
 
-    private File resolveArtifact( String groupId, String artifactId, String version,
-                                  String type, String classifier, ArtifactRepository localRepository, List<ArtifactRepository> repositories ) throws ArtifactResolutionException, IOException, ArtifactNotFoundException
+    private File resolveArtifactFile( String groupId, String artifactId, String version,
+                                      String type, String classifier,
+                                      ArtifactRepository localRepository,
+                                      List<ArtifactRepository> repositories )
+            throws ArtifactResolutionException, ArtifactNotFoundException
     {
-        // TODO: this is a bit crude - proper type, or proper handling as metadata rather than an artifact in 2.1?
-        Artifact artifact = artifactFactory.createArtifactWithClassifier( groupId, artifactId, version, type,
-                                                                          classifier );
-
-        artifactResolver.resolve( artifact, repositories, localRepository );
-
-        return artifact.getFile();
+        List<RemoteRepository> aetherRepos = RepositoryUtils.toRepos( repositories );
+        DefaultArtifact aetherArtifact = new DefaultArtifact( groupId, artifactId, classifier, type, version );
+        ArtifactRequest request = new ArtifactRequest( aetherArtifact, aetherRepos, null );
+        try
+        {
+            ArtifactResult result = aetherRepositorySystem.resolveArtifact(
+                    legacySupport.getSession().getRepositorySession(), request );
+            return result.getArtifact().getFile();
+        }
+        catch ( org.eclipse.aether.resolution.ArtifactResolutionException e )
+        {
+            org.apache.maven.artifact.Artifact placeholder = new org.apache.maven.artifact.DefaultArtifact(
+                    groupId, artifactId, version, null, type, classifier, null );
+            if ( e.getResult() != null && !e.getResult().isResolved() )
+            {
+                throw new ArtifactNotFoundException( e.getMessage(), placeholder );
+            }
+            throw new ArtifactResolutionException( e.getMessage(), placeholder, e );
+        }
     }
 
     private Map<String, String> migrateMissingFileKeys( Set<Object> missingFileKeys )

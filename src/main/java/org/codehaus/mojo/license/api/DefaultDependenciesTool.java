@@ -24,7 +24,6 @@ package org.codehaus.mojo.license.api;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,23 +33,25 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.LegacySupport;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
+import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.apache.maven.project.artifact.InvalidDependencyVersionException;
-import org.apache.maven.project.artifact.MavenMetadataSource;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectDependenciesResolver;
 import org.codehaus.mojo.license.model.Dependency;
 import org.codehaus.mojo.license.utils.FileUtil;
 import org.codehaus.mojo.license.utils.MojoHelper;
@@ -72,27 +73,19 @@ public class DefaultDependenciesTool
     implements DependenciesTool
 {
 
-    /**
-     * Message used when an invalid expression pattern is found.
-     */
     public static final String INVALID_PATTERN_MESSAGE =
         "The pattern specified by expression <%s> seems to be invalid.";
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
-    /**
-     * Project builder.
-     */
     @Requirement
-    private MavenProjectBuilder mavenProjectBuilder;
+    private ProjectBuilder projectBuilder;
 
     @Requirement
-    private ArtifactFactory artifactFactory;
+    private ProjectDependenciesResolver dependenciesResolver;
 
+    /** Provides MavenSession access from within a Plexus component. */
     @Requirement
-    private ArtifactResolver artifactResolver;
-
-    @Requirement
-    private ArtifactMetadataSource artifactMetadataSource;
+    private LegacySupport legacySupport;
 
     /**
      * {@inheritDoc}
@@ -138,12 +131,10 @@ public class DefaultDependenciesTool
 
         if ( configuration.isIncludeTransitiveDependencies() )
         {
-            // All project dependencies
             depArtifacts = project.getArtifacts();
         }
         else
         {
-            // Only direct project dependencies
             depArtifacts = project.getDependencyArtifacts();
         }
 
@@ -171,24 +162,17 @@ public class DefaultDependenciesTool
 
             if ( DefaultThirdPartyTool.LICENSE_DB_TYPE.equals( artifact.getType() ) )
             {
-                // the special dependencies for license databases don't count.
-                // Note that this will still see transitive deps of a license db; so using the build helper inside of another project
-                // to make them will be noisy.
                 continue;
             }
 
             String scope = artifact.getScope();
             if ( CollectionUtils.isNotEmpty( includedScopes ) && !includedScopes.contains( scope ) )
             {
-
-                // not in included scopes
                 continue;
             }
 
             if ( excludeScopes.contains( scope ) )
             {
-
-                // in excluded scopes
                 continue;
             }
 
@@ -201,12 +185,9 @@ public class DefaultDependenciesTool
                 log.info( "detected artifact " + id );
             }
 
-            // Check if the project should be included
-            // If there is no specified artifacts and group to include, include all
             boolean isToInclude = haveNoIncludedArtifacts && haveNoIncludedGroups ||
                 isIncludable( artifact, includedGroupPattern, includedArtifactPattern );
 
-            // Check if the project should be excluded
             boolean isToExclude = isToInclude && haveExclusions &&
                 isExcludable( artifact, excludedGroupPattern, excludedArtifactPattern );
 
@@ -219,10 +200,7 @@ public class DefaultDependenciesTool
                 continue;
             }
 
-            MavenProject depMavenProject;
-
-            // try to get project from cache
-            depMavenProject = localCache.get( id );
+            MavenProject depMavenProject = localCache.get( id );
 
             if ( depMavenProject != null )
             {
@@ -233,12 +211,14 @@ public class DefaultDependenciesTool
             }
             else
             {
-                // build project
-
                 try
                 {
-                    depMavenProject =
-                        mavenProjectBuilder.buildFromRepository( artifact, remoteRepositories, localRepository, true );
+                    MavenSession session = legacySupport.getSession();
+                    ProjectBuildingRequest request =
+                        new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
+                    request.setRemoteRepositories( remoteRepositories );
+                    request.setResolveDependencies( false );
+                    depMavenProject = projectBuilder.build( artifact, request ).getProject();
                     depMavenProject.getArtifact().setScope( artifact.getScope() );
                 }
                 catch ( ProjectBuildingException e )
@@ -252,31 +232,25 @@ public class DefaultDependenciesTool
                     log.info( "add dependency [" + id + "]" );
                 }
 
-                // store it also in cache
                 localCache.put(id, depMavenProject);
             }
 
-            // keep the project
             result.put(id, depMavenProject);
 
             excludeArtifacts.remove(artifact.getId());
             includeArtifacts.put(artifact.getId(), artifact);
         }
 
-        // exclude artifacts from the result that contain excluded artifacts in the dependency trail
         if (excludeTransitiveDependencies) {
             for (Map.Entry<String, Artifact> entry : includeArtifacts.entrySet()) {
                 List<String> dependencyTrail = entry.getValue().getDependencyTrail();
-
                 boolean remove = false;
-
                 for (int i = 1; i < dependencyTrail.size() - 1; i++) {
                     if (excludeArtifacts.containsKey(dependencyTrail.get(i))) {
                         remove = true;
                         break;
                     }
                 }
-
                 if (remove) {
                     result.remove(MojoHelper.getArtifactId(entry.getValue()));
                 }
@@ -294,65 +268,35 @@ public class DefaultDependenciesTool
      * {@inheritDoc}
      */
     public void loadProjectArtifacts( ArtifactRepository localRepository, List remoteRepositories,
-                                      MavenProject project , Map<String,List<org.apache.maven.model.Dependency>> reactorProjectDependencies )
+                                      MavenProject project,
+                                      Map<String, List<org.apache.maven.model.Dependency>> reactorProjectDependencies )
         throws DependenciesToolException
-
     {
-
         if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() ) )
         {
-
-            Set dependenciesArtifacts;
+            MavenSession session = legacySupport.getSession();
+            DefaultDependencyResolutionRequest request =
+                new DefaultDependencyResolutionRequest( project, session.getRepositorySession() );
             try
             {
-                List<org.apache.maven.model.Dependency> dependencies = new ArrayList<org.apache.maven.model.Dependency>(project.getDependencies());
-                if (reactorProjectDependencies!=null) {
-
-                    for (org.apache.maven.model.Dependency dependency : new ArrayList<>(dependencies)) {
-                        String id = String.format("%s:%s", dependency.getGroupId(), dependency.getArtifactId());
-                        List<org.apache.maven.model.Dependency> projectDependencies = reactorProjectDependencies.get(id);
-                        if (projectDependencies!=null) {
-                            dependencies.remove(dependency);
-                            dependencies.addAll(projectDependencies);
-                        }
-                    }
-                }
-                dependenciesArtifacts =
-                    MavenMetadataSource.createArtifacts(artifactFactory, dependencies, null, null,
-                                                        project );
+                DependencyResolutionResult resolved = dependenciesResolver.resolve( request );
+                Set<Artifact> artifacts = resolved.getResolvedDependencies().stream()
+                    .map( dep -> RepositoryUtils.toArtifact( dep.getArtifact() ) )
+                    .collect( Collectors.toSet() );
+                project.setDependencyArtifacts( artifacts );
+                project.setArtifacts( artifacts );
             }
-            catch ( InvalidDependencyVersionException e )
+            catch ( DependencyResolutionException e )
             {
-                throw new DependenciesToolException( e );
+                throw new DependenciesToolException( e.getCause() );
             }
-            project.setDependencyArtifacts( dependenciesArtifacts );
-
-
         }
-
-        Artifact artifact = project.getArtifact();
-
-        ArtifactResolutionResult result;
-        try
-        {
-            result = artifactResolver.resolveTransitively( project.getDependencyArtifacts(), artifact, remoteRepositories,
-                                                           localRepository, artifactMetadataSource );
-        }
-        catch ( ArtifactResolutionException e )
-        {
-            throw new DependenciesToolException( e );
-        }
-        catch ( ArtifactNotFoundException e )
-        {
-            throw new DependenciesToolException( e );
-        }
-
-        project.setArtifacts( result.getArtifacts() );
-
     }
 
     @Override
-    public void writeThirdPartyDependenciesFile(File outputDirectory, String listedDependenciesFilePath, Set<Dependency> listedDependencies) throws IOException {
+    public void writeThirdPartyDependenciesFile( File outputDirectory, String listedDependenciesFilePath,
+                                                 Set<Dependency> listedDependencies ) throws IOException
+    {
         final File thirdPartyDepsFile = FileUtil.getFile(outputDirectory, listedDependenciesFilePath);
 
         if (listedDependencies.isEmpty()) {
@@ -365,23 +309,12 @@ public class DefaultDependenciesTool
                 .writeValue(thirdPartyDepsFile, listedDependencies);
     }
 
-    /**
-     * Tests if the given project is includeable against a groupdId pattern and a artifact pattern.
-     *
-     * @param project                 the project to test
-     * @param includedGroupPattern    the include group pattern
-     * @param includedArtifactPattern the include artifact pattenr
-     * @return {@code true} if the project is includavble, {@code false} otherwise
-     */
     protected boolean isIncludable( Artifact project, Pattern includedGroupPattern, Pattern includedArtifactPattern )
     {
-
         Logger log = getLogger();
 
-        // check if the groupId of the project should be included
         if ( includedGroupPattern != null )
         {
-            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = includedGroupPattern.matcher( project.getGroupId() );
@@ -400,10 +333,8 @@ public class DefaultDependenciesTool
             }
         }
 
-        // check if the artifactId of the project should be included
         if ( includedArtifactPattern != null )
         {
-            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = includedArtifactPattern.matcher( project.getArtifactId() );
@@ -424,23 +355,12 @@ public class DefaultDependenciesTool
         return false;
     }
 
-    /**
-     * Tests if the given project is excludable against a groupdId pattern and a artifact pattern.
-     *
-     * @param project                 the project to test
-     * @param excludedGroupPattern    the exlcude group pattern
-     * @param excludedArtifactPattern the exclude artifact pattenr
-     * @return {@code true} if the project is excludable, {@code false} otherwise
-     */
     protected boolean isExcludable( Artifact project, Pattern excludedGroupPattern, Pattern excludedArtifactPattern )
     {
-
         Logger log = getLogger();
 
-        // check if the groupId of the project should be included
         if ( excludedGroupPattern != null )
         {
-            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = excludedGroupPattern.matcher( project.getGroupId() );
@@ -459,10 +379,8 @@ public class DefaultDependenciesTool
             }
         }
 
-        // check if the artifactId of the project should be included
         if ( excludedArtifactPattern != null )
         {
-            // we have some defined license filters
             try
             {
                 Matcher matchGroupId = excludedArtifactPattern.matcher( project.getArtifactId() );
