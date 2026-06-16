@@ -494,6 +494,10 @@
                                     <!--</pomExcludes>-->
                                     <pomIncludes>
                                         <pomInclude>jars-json-list-test-mojo/pom.xml</pomInclude>
+                                        <!-- Verifies Plexus DI wiring of ProjectBuilder, ProjectDependenciesResolver,
+                                             LegacySupport and Aether RepositorySystem on each Maven version.
+                                             Uses license.skip=true so no external license registry is needed. -->
+                                        <pomInclude>maven-api-compat/pom.xml</pomInclude>
                                     </pomIncludes>
                                 </configuration>
                             </execution>

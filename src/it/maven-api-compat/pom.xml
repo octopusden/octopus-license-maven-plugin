@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.codehaus.mojo.license.test</groupId>
+  <artifactId>test-maven-api-compat</artifactId>
+  <version>@pom.version@</version>
+  <packaging>jar</packaging>
+
+  <name>License Test :: maven-api-compat</name>
+  <description>
+    Verifies that Plexus DI correctly wires ProjectBuilder, ProjectDependenciesResolver,
+    LegacySupport and Aether RepositorySystem into DefaultDependenciesTool and
+    DefaultThirdPartyTool on the current Maven version. Goal execution is skipped
+    (license.skip=true) so no external license registry is required.
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.octopusden.octopus</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>@pom.version@</version>
+        <executions>
+          <execution>
+            <id>check-compat</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <configuration>
+              <!-- Skip actual execution — we only verify Plexus DI wiring succeeds -->
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
