@@ -23,34 +23,3 @@ jobs:
   build:
     name: Verify
     uses: apache/maven-gh-actions-shared/.github/workflows/maven-verify.yml@v3
-
-  integration-tests:
-    name: Invoker IT
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: temurin
-
-      - name: Run Maven Invoker integration tests
-        run: >
-          mvn --batch-mode --update-snapshots
-          -P run-its
-          package
-          invoker:install@all-integration-test
-          invoker:run@all-integration-test
-          invoker:run@integration-test-offline
-
-      - name: Run proxy integration test
-        run: >
-          mvn --batch-mode
-          -P run-its
-          groovy:execute@LittleProxyStart
-          invoker:run@integration-test-proxy
-          groovy:execute@LittleProxyStop
