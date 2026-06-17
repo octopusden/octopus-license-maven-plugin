@@ -26,10 +26,16 @@ import java.nio.file.Files;
 final Path basePath = basedir.toPath()
 
 final String baseUri = basePath.toUri().toString()
-final Path sanitizesConfigPath = basePath.resolve('src/license/licenses-config-content-sanitizers.xml');
-String sanitizersConfigContent = new String(Files.readAllBytes(sanitizesConfigPath), 'utf-8')
-sanitizersConfigContent = sanitizersConfigContent.replace('%project.baseUri%', baseUri)
-Files.write(sanitizesConfigPath, sanitizersConfigContent.getBytes('utf-8'))
+[
+    'src/license/licenses-config-pre-1.18.xml',
+    'src/license/licenses-config-since-1.18.xml',
+    'src/license/licenses-config-content-sanitizers.xml'
+].each {
+    final Path configPath = basePath.resolve(it)
+    String configContent = new String(Files.readAllBytes(configPath), 'utf-8')
+    configContent = configContent.replace('%project.baseUri%', baseUri)
+    Files.write(configPath, configContent.getBytes('utf-8'))
+}
 
 Files.move(basePath.resolve('target-initial'), basePath.resolve('target'))
 

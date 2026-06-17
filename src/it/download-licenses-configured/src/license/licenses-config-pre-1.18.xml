@@ -6,7 +6,7 @@
       <licenses>
         <license>
           <name>Apache License 2.0</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <url>%project.baseUri%src/license/content-sanitizers/apache-2.0.txt</url>
         </license>
       </licenses>
     </dependency>
@@ -21,7 +21,7 @@
       <licenses>
         <license>
           <name>BSD 3-Clause ASM</name>
-          <url>https://gitlab.ow2.org/asm/asm/raw/ASM_3_1_MVN/LICENSE.txt</url>
+          <url>%project.baseUri%src/license/content-sanitizers/bsd3-asm.txt</url>
         </license>
       </licenses>
     </dependency>
