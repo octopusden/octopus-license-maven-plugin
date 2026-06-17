@@ -38,7 +38,7 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
+                    <groupId>org.octopusden.octopus</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>@pom.version@</version>
                 </plugin>
@@ -54,7 +54,7 @@
         <excludeDefaults>true</excludeDefaults>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
+                <groupId>org.octopusden.octopus</groupId>
                 <artifactId>license-maven-plugin</artifactId>
                 <version>@pom.version@</version>
                 <reportSets>
