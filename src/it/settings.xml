@@ -57,6 +57,7 @@
   </profiles>
 
   <pluginGroups>
+    <pluginGroup>org.octopusden.octopus</pluginGroup>
     <pluginGroup>org.codehaus.mojo</pluginGroup>
   </pluginGroups>
 </settings>

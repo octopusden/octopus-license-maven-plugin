@@ -43,7 +43,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>org.codehaus.mojo</groupId>
+      <groupId>org.octopusden.octopus</groupId>
       <artifactId>license-maven-plugin</artifactId>
       <classifier>test-third-party</classifier>
       <type>license.properties</type>
