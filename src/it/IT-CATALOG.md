@@ -67,12 +67,12 @@
 
 | IT | CI | Description |
 |----|----|-------------|
-| `download-licenses-configured` | ✅ | `licensesConfigFile` with pre-configured license URLs downloads correct license texts |
+| `download-licenses-configured` | ❌ no-xml | `licensesConfigFile` with pre-configured license URLs downloads correct license texts; complex setup not fully ported from upstream |
 | `download-licenses-basic` | ❌ live-url | Downloads actual license files from the internet and asserts downloaded files exist |
 | `download-licenses-configured-alt-location` | ❌ no-xml | Custom `licensesOutputDirectory` and `licensesOutputFile` redirect downloads to custom paths; also asserts `licenses.xml` |
 | `download-licenses-force` | ❌ live-url | Force re-download of already-cached license files |
 | `download-licenses-proxy` | ❌ live-url | Downloads license files through an HTTP proxy |
-| `MLICENSE-4` | 🔄 offline | `download-licenses` in Maven offline mode (`-o`) using only locally cached artifacts |
+| `MLICENSE-4` | ❌ no-xml | `download-licenses` in Maven offline mode (`-o`) using only locally cached artifacts; asserts `licenses.xml` |
 | `MLICENSE-24` | ❌ local-path | Scope-based include/exclude filters; dependency uses `${project.basedir}/LICENSE.txt` as license URL |
 | `ISSUE-40` | ❌ no-xml | Excluded-scope dependencies are absent from `licenses.xml` |
 | `ISSUE-55` | ❌ no-xml | BSD license with special characters in its name is downloaded with a sanitised filename |

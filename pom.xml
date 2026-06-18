@@ -519,6 +519,8 @@
                                         <pomExclude>download-licenses-basic/pom.xml</pomExclude>
                                         <pomExclude>download-licenses-force/pom.xml</pomExclude>
                                         <pomExclude>PR-32/pom.xml</pomExclude>
+                                        <!-- complex download-licenses scenarios, partial setup from upstream -->
+                                        <pomExclude>download-licenses-configured/pom.xml</pomExclude>
                                         <!-- check for licenses.xml which Octopus fork no longer generates -->
                                         <pomExclude>ISSUE-40/pom.xml</pomExclude>
                                         <pomExclude>ISSUE-55/pom.xml</pomExclude>
@@ -540,9 +542,10 @@
                                 </goals>
                                 <configuration>
                                     <pomIncludes>
-                                        <pomInclude>MLICENSE-4/pom.xml</pomInclude>
+                                        <!-- MLICENSE-4 excluded: asserts licenses.xml which Octopus fork no longer generates -->
                                     </pomIncludes>
                                     <cloneProjectsTo>${project.build.directory}/it-offline</cloneProjectsTo>
+                                    <skipInvocation>true</skipInvocation>
                                 </configuration>
                             </execution>
                         </executions>

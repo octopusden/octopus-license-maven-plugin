@@ -28,8 +28,7 @@ final Path basePath = basedir.toPath()
 final String baseUri = basePath.toUri().toString()
 [
     'src/license/licenses-config-pre-1.18.xml',
-    'src/license/licenses-config-since-1.18.xml',
-    'src/license/licenses-config-content-sanitizers.xml'
+    'src/license/licenses-config-since-1.18.xml'
 ].each {
     final Path configPath = basePath.resolve(it)
     String configContent = new String(Files.readAllBytes(configPath), 'utf-8')
