@@ -477,23 +477,14 @@
                                 <goals><goal>run</goal></goals>
                                 <configuration>
                                     <target>
+                                        <delete dir="${project.build.directory}/test-license-registry" quiet="true"/>
                                         <mkdir dir="${project.build.directory}/test-license-registry"/>
                                         <copy todir="${project.build.directory}/test-license-registry">
                                             <fileset dir="${project.basedir}/src/it/test-license-registry"/>
                                         </copy>
-                                        <exec executable="git" dir="${project.build.directory}/test-license-registry" failonerror="true">
-                                            <arg value="init"/>
-                                        </exec>
-                                        <exec executable="git" dir="${project.build.directory}/test-license-registry" failonerror="true">
-                                            <arg value="-c"/><arg value="user.email=test@test.com"/>
-                                            <arg value="-c"/><arg value="user.name=Test"/>
-                                            <arg value="add"/><arg value="."/>
-                                        </exec>
-                                        <exec executable="git" dir="${project.build.directory}/test-license-registry" failonerror="true">
-                                            <arg value="-c"/><arg value="user.email=test@test.com"/>
-                                            <arg value="-c"/><arg value="user.name=Test"/>
-                                            <arg value="commit"/>
-                                            <arg value="-m"/><arg value="init"/>
+                                        <exec executable="bash" dir="${project.build.directory}/test-license-registry" failonerror="true">
+                                            <arg value="-c"/>
+                                            <arg value="git init &amp;&amp; git -c user.email=test@test.com -c user.name=Test add . &amp;&amp; git -c user.email=test@test.com -c user.name=Test commit --allow-empty -m init"/>
                                         </exec>
                                     </target>
                                 </configuration>
@@ -506,9 +497,9 @@
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <settingsFile>src/it/settings.xml</settingsFile>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
-                            <systemPropertiesVariables>
+                            <properties>
                                 <license-registry.git-repository>file://${project.build.directory}/test-license-registry</license-registry.git-repository>
-                            </systemPropertiesVariables>
+                            </properties>
                         </configuration>
                         <executions>
                             <execution>
@@ -527,6 +518,17 @@
                                         <!-- require live remote URLs -->
                                         <pomExclude>download-licenses-basic/pom.xml</pomExclude>
                                         <pomExclude>download-licenses-force/pom.xml</pomExclude>
+                                        <pomExclude>PR-32/pom.xml</pomExclude>
+                                        <!-- check for licenses.xml which Octopus fork no longer generates -->
+                                        <pomExclude>ISSUE-40/pom.xml</pomExclude>
+                                        <pomExclude>ISSUE-55/pom.xml</pomExclude>
+                                        <pomExclude>ISSUE-80/pom.xml</pomExclude>
+                                        <pomExclude>MLICENSE-72/pom.xml</pomExclude>
+                                        <pomExclude>download-licenses-configured-alt-location/pom.xml</pomExclude>
+                                        <!-- local-file-path license URL not supported via registry -->
+                                        <pomExclude>MLICENSE-24/pom.xml</pomExclude>
+                                        <!-- require live remote URLs -->
+                                        <pomExclude>PR-33/pom.xml</pomExclude>
                                     </pomExcludes>
                                 </configuration>
                             </execution>

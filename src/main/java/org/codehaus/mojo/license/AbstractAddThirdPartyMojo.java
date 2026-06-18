@@ -533,9 +533,17 @@ public abstract class AbstractAddThirdPartyMojo
             setVerbose( true );
         }
 
-        getLog().info(String.format("Loading WHITE licenses: %s", licenseFileWhitelist));
         final LicenseRegistryClient licenseRegistryClient = LicenseRegistryClient.getInstance();
-        this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent(licenseFileWhitelist));
+        if ( this.includedLicenses == null || this.includedLicenses.getData().isEmpty() )
+        {
+            String whitelistFile = licenseFileWhitelist != null ? licenseFileWhitelist : "licenses-whitelist.txt";
+            getLog().info(String.format("Loading WHITE licenses from registry: %s", whitelistFile));
+            this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent(whitelistFile));
+        }
+        else
+        {
+            getLog().info("Using WHITE licenses from plugin configuration");
+        }
         getLog().info("Loading HIDDEN licenses: licenses-hidden.txt");
         this.hiddenLicenses = new HiddenLicenses(licenseRegistryClient.getFileContent("licenses-hidden.txt"));
 
@@ -743,7 +751,9 @@ public abstract class AbstractAddThirdPartyMojo
             helper =
                     new DefaultThirdPartyHelper( getProject(), getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool,
                                                  localRepository, remoteRepositories, getLog(), artifactoryUrl,
-                                                 artifactoryAccessToken, isUseSonatypeProcessor, isUseXrayProcessor );
+                                                 artifactoryAccessToken,
+                                                 isUseSonatypeProcessor != null ? isUseSonatypeProcessor : Boolean.FALSE,
+                                                 isUseXrayProcessor != null ? isUseXrayProcessor : Boolean.FALSE );
         }
         return helper;
     }

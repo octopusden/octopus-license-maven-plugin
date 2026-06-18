@@ -51,7 +51,11 @@ public class StringToList
         this();
         for ( String s : data.split( "\\s*\\|\\s*" ) )
         {
-            addEntryToList( s.trim() );
+            String trimmed = s.trim();
+            if ( !trimmed.isEmpty() )
+            {
+                addEntryToList( trimmed );
+            }
         }
     }
 

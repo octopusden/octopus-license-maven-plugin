@@ -75,7 +75,12 @@ public class LicenseDownloader
 
         final InputStream licenseInputStream;
         if (!licenseUrlString.startsWith("http") ) {
-            licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
+            File localFile = new File(licenseUrlString);
+            if (localFile.isFile()) {
+                licenseInputStream = new java.io.FileInputStream(localFile);
+            } else {
+                licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
+            }
         } else {
             URLConnection connection = newConnection( licenseUrlString, loginPassword );
 

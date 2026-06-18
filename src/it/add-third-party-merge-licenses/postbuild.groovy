@@ -64,9 +64,9 @@ def checkThirdPartyFile(filePath) {
   assert assertContent(file, content, '(The Apache Software License, Version 2.0) Plexus Cipher: encryption/decryption Component (org.sonatype.plexus:plexus-cipher:1.4 - http://spice.sonatype.org/plexus-cipher)');
 }
 
-checkThirdPartyFile('target/generated-sources/license/THIRD-PARTY-singleList.txt');
-checkThirdPartyFile('target/generated-sources/license/THIRD-PARTY-singleListSplit.txt');
-checkThirdPartyFile('target/generated-sources/license/THIRD-PARTY-twoList.txt');
-checkThirdPartyFile('target/generated-sources/license/THIRD-PARTY-twoListSplit.txt');
+checkThirdPartyFile('target/generated-resources/licenses/THIRD-PARTY-singleList.txt');
+checkThirdPartyFile('target/generated-resources/licenses/THIRD-PARTY-singleListSplit.txt');
+checkThirdPartyFile('target/generated-resources/licenses/THIRD-PARTY-twoList.txt');
+checkThirdPartyFile('target/generated-resources/licenses/THIRD-PARTY-twoListSplit.txt');
 
 return true;

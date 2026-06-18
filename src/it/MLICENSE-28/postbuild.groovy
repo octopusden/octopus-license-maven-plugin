@@ -52,13 +52,13 @@ def assertContains(file, content, expected) {
     return true
 }
 
-file = new File(basedir, 'child1/target/generated-sources/license/THIRD-PARTY.txt');
+file = new File(basedir, 'child1/target/generated-resources/licenses/THIRD-PARTY.txt');
 assertNotExistsFile(file);
 
-file = new File(basedir, 'child2/target/generated-sources/license/THIRD-PARTY.txt');
+file = new File(basedir, 'child2/target/generated-resources/licenses/THIRD-PARTY.txt');
 assertNotExistsFile(file);
 
-file = new File(basedir, 'target/generated-sources/license/THIRD-PARTY.txt');
+file = new File(basedir, 'target/generated-resources/licenses/THIRD-PARTY.txt');
 assertExistsFile(file);
 content = file.text;
 
