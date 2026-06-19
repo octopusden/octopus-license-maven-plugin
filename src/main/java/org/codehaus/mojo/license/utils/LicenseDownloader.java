@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -77,7 +78,7 @@ public class LicenseDownloader
         if (!licenseUrlString.startsWith("http") ) {
             File localFile = new File(licenseUrlString);
             if (localFile.isFile()) {
-                licenseInputStream = new java.io.FileInputStream(localFile);
+                licenseInputStream = Files.newInputStream(localFile.toPath());
             } else {
                 licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
             }

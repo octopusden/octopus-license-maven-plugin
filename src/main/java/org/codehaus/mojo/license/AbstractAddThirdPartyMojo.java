@@ -537,8 +537,8 @@ public abstract class AbstractAddThirdPartyMojo
         if ( this.includedLicenses == null || this.includedLicenses.getData().isEmpty() )
         {
             String whitelistFile = licenseFileWhitelist != null ? licenseFileWhitelist : "licenses-whitelist.txt";
-            getLog().info(String.format("Loading WHITE licenses from registry: %s", whitelistFile));
-            this.includedLicenses = new IncludedLicenses(licenseRegistryClient.getFileContent(whitelistFile));
+            getLog().info( "Loading WHITE licenses from registry: " + whitelistFile );
+            this.includedLicenses = new IncludedLicenses( licenseRegistryClient.getFileContent( whitelistFile ) );
         }
         else
         {
