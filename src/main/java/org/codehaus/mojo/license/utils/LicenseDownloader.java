@@ -31,9 +31,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.*;
-import java.nio.file.Files;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Utilities for downloading remote license files.
@@ -77,7 +82,9 @@ public class LicenseDownloader
         final InputStream licenseInputStream;
         if (!licenseUrlString.startsWith("http") ) {
             File localFile = new File(licenseUrlString);
-            if (localFile.isFile()) {
+            Path workspaceRoot = java.nio.file.Paths.get("").toAbsolutePath().normalize();
+            Path candidate = localFile.toPath().toAbsolutePath().normalize();
+            if (localFile.isFile() && candidate.startsWith(workspaceRoot)) {
                 licenseInputStream = Files.newInputStream(localFile.toPath());
             } else {
                 licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));
@@ -86,7 +93,7 @@ public class LicenseDownloader
             URLConnection connection = newConnection( licenseUrlString, loginPassword );
 
             boolean redirect = false;
-            if ( connection instanceof HttpURLConnection )
+            if ( connection instanceof HttpURLConnection)
             {
                 int status = ( (HttpURLConnection) connection ).getResponseCode();
 
