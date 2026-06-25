@@ -82,9 +82,8 @@ public class LicenseDownloader
         final InputStream licenseInputStream;
         if (!licenseUrlString.startsWith("http") ) {
             File localFile = new File(licenseUrlString);
-            Path workspaceRoot = java.nio.file.Paths.get("").toAbsolutePath().normalize();
-            Path candidate = localFile.toPath().toAbsolutePath().normalize();
-            if (localFile.isFile() && candidate.startsWith(workspaceRoot)) {
+            Path workspaceRoot = java.nio.file.Paths.get("").toAbsolutePath().toRealPath();
+            if (localFile.isFile() && localFile.toPath().toRealPath().startsWith(workspaceRoot)) {
                 licenseInputStream = Files.newInputStream(localFile.toPath());
             } else {
                 licenseInputStream = new ByteArrayInputStream(LicenseRegistryClient.getInstance().getFileContent(licenseUrlString).getBytes(StandardCharsets.UTF_8));

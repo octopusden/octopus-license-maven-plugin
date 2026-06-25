@@ -534,20 +534,7 @@
                                     </pomExcludes>
                                 </configuration>
                             </execution>
-                            <!-- as this it is run in offline, then execute it after the previous its... -->
-                            <execution>
-                                <id>integration-test-offline</id>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <pomIncludes>
-                                        <!-- MLICENSE-4 excluded: asserts licenses.xml which Octopus fork no longer generates -->
-                                    </pomIncludes>
-                                    <cloneProjectsTo>${project.build.directory}/it-offline</cloneProjectsTo>
-                                    <skipInvocation>true</skipInvocation>
-                                </configuration>
-                            </execution>
+
                         </executions>
                     </plugin>
                 </plugins>
