@@ -22,6 +22,7 @@
 
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 final Path basePath = basedir.toPath()
 
@@ -36,7 +37,7 @@ final String baseUri = basePath.toUri().toString()
     Files.write(configPath, configContent.getBytes('utf-8'))
 }
 
-Files.move(basePath.resolve('target-initial'), basePath.resolve('target'))
+Files.move(basePath.resolve('target-initial'), basePath.resolve('target'), StandardCopyOption.REPLACE_EXISTING)
 
 final Path asl2 = basePath.resolve('target/no-download/licenses/apache-license-2.0-license-2.0.txt')
 assert Files.exists(asl2)
