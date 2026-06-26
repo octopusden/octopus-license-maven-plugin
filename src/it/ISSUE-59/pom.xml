@@ -75,7 +75,7 @@
       <plugins>
 
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>org.octopusden.octopus</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>@pom.version@</version>
         </plugin>

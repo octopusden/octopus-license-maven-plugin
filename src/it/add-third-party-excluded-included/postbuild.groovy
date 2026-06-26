@@ -20,7 +20,7 @@
  * #L%
  */
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithoutScope.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithoutScope.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -30,7 +30,7 @@ assert content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert content.contains('org.nuiton:maven-helper-plugin');
 assert !content.contains('junit:junit:4.8.2');
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithScope.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithScope.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -40,7 +40,7 @@ assert !content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert !content.contains('org.nuiton:maven-helper-plugin');
 assert content.contains('junit:junit:4.8.2');
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithoutGroup.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithoutGroup.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -50,7 +50,7 @@ assert !content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert content.contains('junit:junit:4.8.2');
 
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithoutArtifact.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithoutArtifact.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -60,7 +60,7 @@ assert !content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert content.contains('junit:junit:4.8.2');
 
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithGroupWithoutArtifact.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithGroupWithoutArtifact.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -70,7 +70,7 @@ assert !content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert content.contains('org.nuiton:maven-helper-plugin');
 
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithoutGroupWithArtifact.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithoutGroupWithArtifact.txt');
 assert file.exists();
 content = file.text;
 assert content.contains('The project has no dependencies.');
@@ -80,7 +80,7 @@ assert !content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert !content.contains('org.nuiton:maven-helper-plugin');
 
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithGroupWithArtifact.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithGroupWithArtifact.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');
@@ -90,7 +90,7 @@ assert content.contains('org.nuiton.i18n:nuiton-i18n:1.2.2');
 assert content.contains('org.nuiton:maven-helper-plugin');
 
 
-file = new File(basedir, 'target/generated-sources/license/thirdWithoutGroupWithoutArtifact.txt');
+file = new File(basedir, 'target/generated-resources/licenses/thirdWithoutGroupWithoutArtifact.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('The project has no dependencies.');

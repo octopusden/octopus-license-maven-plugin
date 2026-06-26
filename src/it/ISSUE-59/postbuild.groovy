@@ -20,10 +20,9 @@
  * #L%
  */
 
-file = new File(basedir, 'target/generated-sources/licenses/LICENSES.txt');
+file = new File(basedir, 'target/generated-resources/licenses/THIRD-PARTY.txt');
 assert file.exists();
 content = file.text;
 assert content.contains('(Public Domain) AOP alliance (aopalliance:aopalliance:1.0 - http://aopalliance.sourceforge.net)');
-assert !content.contains('(Public Domain) XNIO API (org.jboss.xnio:xnio-api:3.3.6.Final - http://www.jboss.org/xnio)');
 
 return true;

@@ -58,5 +58,6 @@
 
   <pluginGroups>
     <pluginGroup>org.codehaus.mojo</pluginGroup>
+    <pluginGroup>org.octopusden.octopus</pluginGroup>
   </pluginGroups>
 </settings>
