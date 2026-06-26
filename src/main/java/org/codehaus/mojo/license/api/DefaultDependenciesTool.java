@@ -24,7 +24,11 @@ package org.codehaus.mojo.license.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +38,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
+
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionException;
+import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.graph.DependencyVisitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
@@ -89,6 +100,9 @@ public class DefaultDependenciesTool
     /** Provides MavenSession access from within a Plexus component. */
     @Requirement
     private LegacySupport legacySupport;
+
+    @Requirement
+    private RepositorySystem repositorySystem;
 
     /**
      * {@inheritDoc}
@@ -228,20 +242,36 @@ public class DefaultDependenciesTool
             else
             {
                 // build project
+                MavenSession session = legacySupport.getSession();
+                ProjectBuildingRequest request =
+                    new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
+                request.setRemoteRepositories( remoteRepositories );
+                request.setResolveDependencies( false );
                 try
                 {
-                    MavenSession session = legacySupport.getSession();
-                    ProjectBuildingRequest request =
-                        new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
-                    request.setRemoteRepositories( remoteRepositories );
-                    request.setResolveDependencies( false );
                     depMavenProject = projectBuilder.build( artifact, request ).getProject();
                     depMavenProject.getArtifact().setScope( artifact.getScope() );
                 }
                 catch ( ProjectBuildingException e )
                 {
-                    log.warn( "Unable to obtain POM for artifact : " + artifact, e );
-                    continue;
+                    log.warn( "Unable to obtain POM for artifact : " + artifact );
+                    // Retry with reduced strictness to handle non-standard packaging (e.g. OSGi 'bundle').
+                    try
+                    {
+                        ProjectBuildingRequest lenientRequest = new DefaultProjectBuildingRequest( request );
+                        lenientRequest.setProcessPlugins( false );
+                        lenientRequest.setValidationLevel( 0 ); // ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL
+                        depMavenProject = projectBuilder.build( artifact, lenientRequest ).getProject();
+                        depMavenProject.getArtifact().setScope( artifact.getScope() );
+                    }
+                    catch ( ProjectBuildingException e2 )
+                    {
+                        depMavenProject = new MavenProject();
+                        depMavenProject.setGroupId( artifact.getGroupId() );
+                        depMavenProject.setArtifactId( artifact.getArtifactId() );
+                        depMavenProject.setVersion( artifact.getVersion() );
+                        depMavenProject.setArtifact( artifact );
+                    }
                 }
 
                 if ( verbose )
@@ -265,10 +295,12 @@ public class DefaultDependenciesTool
             for (Map.Entry<String, Artifact> entry : includeArtifacts.entrySet()) {
                 List<String> dependencyTrail = entry.getValue().getDependencyTrail();
                 boolean remove = false;
-                for (int i = 1; i < dependencyTrail.size() - 1; i++) {
-                    if (excludeArtifacts.containsKey(dependencyTrail.get(i))) {
-                        remove = true;
-                        break;
+                if (dependencyTrail != null) {
+                    for (int i = 1; i < dependencyTrail.size() - 1; i++) {
+                        if (excludeArtifacts.containsKey(dependencyTrail.get(i))) {
+                            remove = true;
+                            break;
+                        }
                     }
                 }
                 if (remove) {
@@ -292,7 +324,8 @@ public class DefaultDependenciesTool
                                       Map<String, List<org.apache.maven.model.Dependency>> reactorProjectDependencies )
         throws DependenciesToolException
     {
-        if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() ) )
+        if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() )
+             || CollectionUtils.isEmpty( project.getArtifacts() ) )
         {
             MavenSession session = legacySupport.getSession();
             // ProjectDependenciesResolver resolves reactor modules automatically via
@@ -303,16 +336,126 @@ public class DefaultDependenciesTool
             try
             {
                 DependencyResolutionResult resolved = dependenciesResolver.resolve( request );
-                // getDependencies() covers all graph nodes including pre-cached ones;
-                // getResolvedDependencies() can be empty on Maven 3.8.x for cached deps.
-                // Scope lives on Dependency, not Artifact — set it explicitly after conversion.
-                Set<Artifact> artifacts = resolved.getDependencies().stream()
-                    .map( dep -> {
-                        Artifact a = RepositoryUtils.toArtifact( dep.getArtifact() );
-                        a.setScope( dep.getScope() );
-                        return a;
-                    } )
-                    .collect( Collectors.toSet() );
+                Set<Artifact> artifacts;
+                if ( resolved.getDependencies().isEmpty() && !project.getDependencies().isEmpty() )
+                {
+                    // ProjectDependenciesResolver returns empty when called on a reactor sub-module
+                    // from an aggregator mojo before that module enters its own lifecycle.
+                    // Fall back to collecting the dependency graph directly via Aether.
+                    try
+                    {
+                        CollectRequest collectRequest = new CollectRequest();
+                        for ( org.apache.maven.model.Dependency dep : project.getDependencies() )
+                        {
+                            collectRequest.addDependency( RepositoryUtils.toDependency(
+                                dep, session.getRepositorySession().getArtifactTypeRegistry() ) );
+                        }
+                        collectRequest.setRepositories(
+                            RepositoryUtils.toRepos( project.getRemoteArtifactRepositories() ) );
+                        CollectResult collectResult = repositorySystem.collectDependencies(
+                            session.getRepositorySession(), collectRequest );
+                        Set<Artifact> collectedArtifacts = new HashSet<>();
+                        Deque<String> trailStack = new ArrayDeque<>();
+                        String rootId = project.getArtifact() != null
+                            ? project.getArtifact().getId()
+                            : project.getGroupId() + ":" + project.getArtifactId() + ":pom:" + project.getVersion();
+                        trailStack.addLast( rootId );
+                        collectResult.getRoot().accept( new DependencyVisitor()
+                        {
+                            @Override
+                            public boolean visitEnter( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    Artifact a = RepositoryUtils.toArtifact( node.getArtifact() );
+                                    a.setScope( node.getDependency().getScope() );
+                                    List<String> trail = new ArrayList<>( trailStack );
+                                    trail.add( a.getId() );
+                                    a.setDependencyTrail( trail );
+                                    collectedArtifacts.add( a );
+                                    trailStack.addLast( a.getId() );
+                                }
+                                return true;
+                            }
+
+                            @Override
+                            public boolean visitLeave( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    trailStack.removeLast();
+                                }
+                                return true;
+                            }
+                        } );
+                        artifacts = collectedArtifacts;
+                    }
+                    catch ( DependencyCollectionException e )
+                    {
+                        getLogger().warn( "Could not collect dependencies for " + project.getId()
+                                              + ": " + e.getMessage() );
+                        artifacts = new HashSet<>();
+                    }
+                }
+                else
+                {
+                    // Walk the dependency graph tree to build proper dependency trails for
+                    // excludeTransitiveDependencies filtering. Use the flat resolved list
+                    // as the authoritative artifact set (non-conflicted), and apply trails
+                    // from the tree onto them.
+                    Map<String, List<String>> trailMap = new HashMap<>();
+                    DependencyNode graphRoot = resolved.getDependencyGraph();
+                    if ( graphRoot != null )
+                    {
+                        Deque<String> trailStack = new ArrayDeque<>();
+                        String rootId = project.getArtifact() != null
+                            ? project.getArtifact().getId()
+                            : project.getGroupId() + ":" + project.getArtifactId() + ":pom:"
+                                + project.getVersion();
+                        trailStack.addLast( rootId );
+                        graphRoot.accept( new DependencyVisitor()
+                        {
+                            @Override
+                            public boolean visitEnter( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    Artifact a = RepositoryUtils.toArtifact( node.getArtifact() );
+                                    String id = a.getId();
+                                    if ( !trailMap.containsKey( id ) )
+                                    {
+                                        List<String> trail = new ArrayList<>( trailStack );
+                                        trail.add( id );
+                                        trailMap.put( id, trail );
+                                    }
+                                    trailStack.addLast( id );
+                                }
+                                return true;
+                            }
+                            @Override
+                            public boolean visitLeave( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    trailStack.removeLast();
+                                }
+                                return true;
+                            }
+                        } );
+                    }
+                    artifacts = resolved.getDependencies().stream()
+                        .map( dep -> {
+                            Artifact a = RepositoryUtils.toArtifact( dep.getArtifact() );
+                            a.setScope( dep.getScope() );
+                            List<String> trail = trailMap.get( a.getId() );
+                            if ( trail != null )
+                            {
+                                a.setDependencyTrail( trail );
+                            }
+                            return a;
+                        } )
+                        .collect( Collectors.toSet() );
+                }
                 project.setDependencyArtifacts( artifacts );
                 project.setArtifacts( artifacts );
             }

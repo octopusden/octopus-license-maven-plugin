@@ -880,8 +880,9 @@ public class DefaultThirdPartyTool
             // we can afford to write an empty descriptor here as we don't expect it to turn up later in the remote
             // repository, because the parent was already released (and snapshots are updated automatically if changed)
             org.apache.maven.artifact.Artifact placeholder = new org.apache.maven.artifact.DefaultArtifact(
-                    project.getGroupId(), project.getArtifactId(), project.getVersion(),
-                    null, DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER, null );
+                    project.getGroupId(), project.getArtifactId(), project.getVersion(), null,
+                    DESCRIPTOR_TYPE, DESCRIPTOR_CLASSIFIER,
+                    new org.apache.maven.artifact.handler.DefaultArtifactHandler( DESCRIPTOR_TYPE ) );
             result = new File( localRepository.getBasedir(), localRepository.pathOf( placeholder ) );
         }
 
@@ -919,9 +920,7 @@ public class DefaultThirdPartyTool
                     groupId, artifactId, version, null, type, classifier, null );
             if ( e.getResult() != null && !e.getResult().isResolved() )
             {
-                ArtifactNotFoundException anfe = new ArtifactNotFoundException( e.getMessage(), placeholder );
-                anfe.initCause( e );
-                throw anfe;
+                throw new ArtifactNotFoundException( e.getMessage(), placeholder );
             }
             throw new ArtifactResolutionException( e.getMessage(), placeholder, e );
         }
