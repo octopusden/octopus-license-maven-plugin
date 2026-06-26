@@ -170,7 +170,10 @@ public class DefaultDependenciesTool
         SortedMap<String, MavenProject> localCache = new TreeMap<>();
         if (cache != null)
         {
-            localCache.putAll(cache);
+            synchronized ( cache )
+            {
+                localCache.putAll(cache);
+            }
         }
 
         for ( Object o : depArtifacts )
@@ -304,7 +307,10 @@ public class DefaultDependenciesTool
         }
 
         if (cache != null) {
-            cache.putAll(result);
+            synchronized ( cache )
+            {
+                cache.putAll(result);
+            }
         }
 
         return result;
