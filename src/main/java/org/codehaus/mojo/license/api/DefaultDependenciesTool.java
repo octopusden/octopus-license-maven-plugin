@@ -303,8 +303,15 @@ public class DefaultDependenciesTool
             try
             {
                 DependencyResolutionResult resolved = dependenciesResolver.resolve( request );
-                Set<Artifact> artifacts = resolved.getResolvedDependencies().stream()
-                    .map( dep -> RepositoryUtils.toArtifact( dep.getArtifact() ) )
+                // getDependencies() covers all graph nodes including pre-cached ones;
+                // getResolvedDependencies() can be empty on Maven 3.8.x for cached deps.
+                // Scope lives on Dependency, not Artifact — set it explicitly after conversion.
+                Set<Artifact> artifacts = resolved.getDependencies().stream()
+                    .map( dep -> {
+                        Artifact a = RepositoryUtils.toArtifact( dep.getArtifact() );
+                        a.setScope( dep.getScope() );
+                        return a;
+                    } )
                     .collect( Collectors.toSet() );
                 project.setDependencyArtifacts( artifacts );
                 project.setArtifacts( artifacts );
