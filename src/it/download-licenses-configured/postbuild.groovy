@@ -19,30 +19,119 @@
  * <http://www.gnu.org/licenses/lgpl-3.0.html>.
  * #L%
  */
-def assertExistsFile(file)
-{
-    if ( !file.exists() || file.isDirectory() )
-    {
-        println(file.getAbsolutePath() + " file is missing or a directory.")
-        assert false
-    }
-    assert true
+
+import java.nio.file.Path;
+import java.nio.file.Files;
+
+final Path basePath = basedir.toPath()
+final String baseUri = basePath.toUri().toString()
+
+boolean assertExpectedLicensesXml(final Path expectedLicensesXml, final Path licensesXml, final String baseUri) {
+    String expected = expectedLicensesXml.toFile().text
+    String actual = licensesXml.toFile().text.replace(baseUri, '%project.baseUri%')
+    assert expected.equals(actual)
+    return true
 }
 
-def assertContains(file, content, expected)
-{
-    if ( !content.contains(expected) )
-    {
-        println(expected + " was not found in file [" + file + "]\n :" + content)
-        assert false
-    }
-    assert true
-}
+return {
+    final String id = 'pre-1.18'
+    final Path outputBase = basePath.resolve('target/' + id)
 
-file = new File(basedir, 'target/generated-resources/licenses/apache license 2.0 - license-2.0.txt');
-assertExistsFile(file);
+    final Path asl2 = outputBase.resolve('licenses/apache license 2.0 - apache-2.0.txt')
+    assert Files.exists(asl2)
+    assert asl2.toFile().text.contains('Version 2.0, January 2004')
 
-file = new File(basedir, 'target/generated-resources/licenses.xml');
-assertExistsFile(file);
+    final Path bsdAsm = outputBase.resolve('licenses/bsd 3-clause asm - bsd3-asm.txt')
+    assert Files.exists(bsdAsm)
+    assert bsdAsm.toFile().text.contains('ASM: a very small and fast Java bytecode manipulation framework')
 
-return true;
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assertExpectedLicensesXml(expectedLicensesXml, licensesXml, baseUri)
+    return true
+}() && {
+    final String id = 'since-1.18'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path asl2 = outputBase.resolve('licenses/apache-license-2.0-apache-2.0.txt')
+    assert Files.exists(asl2)
+    assert asl2.toFile().text.contains('Version 2.0, January 2004')
+
+    final Path bsdAsm = outputBase.resolve('licenses/bsd-3-clause-asm-bsd3-asm.txt')
+    assert Files.exists(bsdAsm)
+    assert bsdAsm.toFile().text.contains('ASM: a very small and fast Java bytecode manipulation framework')
+
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assertExpectedLicensesXml(expectedLicensesXml, licensesXml, baseUri)
+    return true
+}() && {
+    final String id = 'artifact-filters-url'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path bsdAsm = outputBase.resolve('licenses/bsd 3-clause asm - license.txt')
+    assert !Files.exists(bsdAsm)
+
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assert expectedLicensesXml.toFile().text.equals(licensesXml.toFile().text)
+    return true
+}() && {
+    final String id = 'no-download'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path asl2 = outputBase.resolve('licenses/apache-license-2.0-license-2.0.txt')
+    assert Files.exists(asl2)
+    assert asl2.toFile().text.contains('Fake content')
+
+    final Path bsdAsm = outputBase.resolve('licenses/bsd-3-clause-asm-license.txt')
+    assert Files.exists(bsdAsm)
+    assert bsdAsm.toFile().text.contains('Fake content')
+
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assert expectedLicensesXml.toFile().text.equals(licensesXml.toFile().text)
+    return true
+}() && {
+    final String id = 'delete-orphans'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path asl2 = outputBase.resolve('licenses/apache-license-2.0-license-2.0.txt')
+    assert Files.exists(asl2)
+    assert asl2.toFile().text.contains('Fake content')
+
+    final Path bsdAsm = outputBase.resolve('licenses/bsd-3-clause-asm-license.txt')
+    assert Files.exists(bsdAsm)
+    assert bsdAsm.toFile().text.contains('Fake content')
+
+    final Path fooBar = outputBase.resolve('licenses/foo-bar-license.txt')
+    assert !Files.exists(fooBar)
+
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assert expectedLicensesXml.toFile().text.equals(licensesXml.toFile().text)
+    return true
+}() && {
+    final String id = 'insert-versions'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path expectedLicensesXml = basePath.resolve('licenses-'+ id +'.expected.xml')
+    final Path licensesXml = outputBase.resolve('licenses.xml')
+    assert expectedLicensesXml.toFile().text.equals(licensesXml.toFile().text)
+    return true
+}() && {
+    final String id = 'content-sanitizers'
+    final Path outputBase = basePath.resolve('target/' + id)
+
+    final Path asl2 = outputBase.resolve('licenses/apache-license-2.0-apache-2.0.txt')
+    assert Files.exists(asl2)
+    final Path expectedAsl2 = basePath.resolve('src/license/'+ id +'/apache-2.0.expected.txt')
+    assert expectedAsl2.toFile().text.equals(asl2.toFile().text)
+
+    final Path bsdAsm = outputBase.resolve('licenses/bsd-3-clause-asm-bsd3-asm.txt')
+    assert Files.exists(bsdAsm)
+    final Path expectedBsdAsm = basePath.resolve('src/license/'+ id +'/bsd3-asm.expected.txt')
+    assert expectedBsdAsm.toFile().text.equals(bsdAsm.toFile().text)
+
+    return true
+}()

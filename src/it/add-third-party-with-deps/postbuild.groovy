@@ -20,13 +20,13 @@
  * #L%
  */
 
-file = new File(basedir, 'target/generated-sources/license/third.txt');
+file = new File(basedir, 'target/generated-resources/licenses/third.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('the project has no dependencies.');
 assert content.contains('(The Apache Software License, Version 2.0) Commons Logging (commons-logging:commons-logging:1.1.1 - http://commons.apache.org/logging)');
 
-file = new File(basedir, 'target/generated-sources/license/test/third.txt');
+file = new File(basedir, 'target/generated-resources/licenses/test/third.txt');
 assert file.exists();
 content = file.text;
 assert !content.contains('the project has no dependencies.');

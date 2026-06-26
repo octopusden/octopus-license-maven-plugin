@@ -415,7 +415,8 @@ public abstract class AbstractDownloadLicensesMojo
         ThirdPartyHelper thirdPartyHelper =
                 new DefaultThirdPartyHelper(project, getEncoding(), isVerbose(), dependenciesTool, thirdPartyTool, localRepository,
                         project.getRemoteArtifactRepositories(), getLog(), artifactoryUrl, artifactoryAccessToken,
-                        isUseSonatypeProcessor, isUseXrayProcessor);
+                        isUseSonatypeProcessor != null ? isUseSonatypeProcessor : Boolean.FALSE,
+                        isUseXrayProcessor != null ? isUseXrayProcessor : Boolean.FALSE);
         LicenseMap licenseMap = thirdPartyHelper.createLicenseMap(dependencies, proxyUrl);
 
         overrideLicenses(licenseMap, projectDependenciesMap);
@@ -728,7 +729,7 @@ public abstract class AbstractDownloadLicensesMojo
         String licenseFileName;
         String defaultExtension = ".txt";
 
-        if (organizeLicensesByDependencies) {
+        if (organizeLicensesByDependencies && depProject != null) {
             licenseFileName = String.format("%s.%s%s", depProject.getGroupId(), depProject.getArtifactId(),
                     licenseName != null
                             ? "_" + licenseName

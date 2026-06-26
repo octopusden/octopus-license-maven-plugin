@@ -60,7 +60,7 @@ def assertContent(file, content, wantedText)
 }
 
 File target = new File(basedir, "target");
-File defaultThirdPartyFile = new File(target, "generated-sources/license/THIRD-PARTY.txt");
+File defaultThirdPartyFile = new File(target, "generated-resources/licenses/THIRD-PARTY.txt");
 File reportThirdPartyFile = new File(target, "site/third-party-report.html");
 
 assert assertExistsDirectory(target);

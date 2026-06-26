@@ -13,6 +13,7 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -71,6 +72,9 @@ public class AggregatorAddThirdPartyMojo extends AbstractAddThirdPartyMojo
      */
     @Parameter( property = "reactorProjects", readonly = true, required = true )
     private List<MavenProject> reactorProjects;
+
+    @Parameter( defaultValue = "${plugin}", readonly = true )
+    private PluginDescriptor pluginDescriptor;
 
     /**
      * To skip execution of this mojo.
@@ -173,26 +177,9 @@ public class AggregatorAddThirdPartyMojo extends AbstractAddThirdPartyMojo
 
         licenseMap = new LicenseMap();
 
-        Artifact pluginArtifact = (Artifact) project.getPluginArtifactMap().get("org.codehaus.mojo:license-maven-plugin");
-
-        String groupId=null;
-        String artifactId=null;
-        String version=null;
-        if (pluginArtifact==null) {
-            Plugin plugin = (Plugin) project.getPluginManagement().getPluginsAsMap().get("org.codehaus.mojo:license-maven-plugin");
-            if (plugin!=null) {
-                groupId = plugin.getGroupId();
-                artifactId = plugin.getArtifactId();
-                version = plugin.getVersion();
-            }
-        } else {
-            groupId = pluginArtifact.getGroupId();
-            artifactId = pluginArtifact.getArtifactId();
-            version = pluginArtifact.getVersion();
-        }
-        if (groupId==null) {
-            throw new IllegalStateException("Can't find license-maven-plugin");
-        }
+        String groupId = pluginDescriptor.getGroupId();
+        String artifactId = pluginDescriptor.getArtifactId();
+        String version = pluginDescriptor.getVersion();
 
         String addThirdPartyRoleHint = groupId + ":" + artifactId + ":" + version + ":" + "add-third-party";
         Map<String, List<Dependency>> reactorProjectDependencies = new TreeMap<String, List<Dependency>>();
