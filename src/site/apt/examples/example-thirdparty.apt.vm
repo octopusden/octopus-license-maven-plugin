@@ -100,7 +100,7 @@ org.codehaus.mojo.license.test--test-add-third-party-global-db-misc-dep--1=The A
   <<fileTemplate>> property of the mojo) to says how to generate the file.
 
   Have a look on existing templates :
-  https://github.com/mojohaus/license-maven-plugin/tree/master/src/main/resources/org/codehaus/mojo/license
+  https://github.com/octopusden/octopus-license-maven-plugin/tree/octopus/src/main/resources/org/codehaus/mojo/license
 
 * Change artifacts order
 
@@ -259,7 +259,7 @@ List of 2 third-party dependencies.
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>org.octopusden.octopus</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${project.version}</version>
           <executions>
@@ -295,7 +295,7 @@ List of 2 third-party dependencies.
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>org.octopusden.octopus</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${project.version}</version>
           <executions>
@@ -321,7 +321,7 @@ List of 2 third-party dependencies.
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
+          <groupId>org.octopusden.octopus</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${project.version}</version>
           <executions>

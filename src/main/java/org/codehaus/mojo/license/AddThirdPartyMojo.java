@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -433,7 +434,6 @@ public class AddThirdPartyMojo extends AbstractAddThirdPartyMojo implements Mave
         missingLicensesFileArtifact = mojo.missingLicensesFileArtifact;
         localRepository = mojo.localRepository;
         remoteRepositories = mojo.remoteRepositories;
-        dependencies = new HashSet<Artifact>(mavenProject.getDependencies());
         licenseMerges = mojo.licenseMerges;
         includedLicenses = mojo.includedLicenses;
         excludedLicenses = mojo.excludedLicenses;
@@ -452,6 +452,10 @@ public class AddThirdPartyMojo extends AbstractAddThirdPartyMojo implements Mave
         setLog(mojo.getLog());
 
         dependenciesTool.loadProjectArtifacts( localRepository, project.getRemoteArtifactRepositories(), project ,reactorProjects);
+
+        // getDependencyArtifacts() may be null before resolution; read after loadProjectArtifacts() populates it.
+        Set<Artifact> resolved = mavenProject.getDependencyArtifacts();
+        dependencies = resolved != null ? new HashSet<Artifact>( resolved ) : new HashSet<Artifact>();
 
         init();
 

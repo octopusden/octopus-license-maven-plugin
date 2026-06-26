@@ -24,8 +24,11 @@ package org.codehaus.mojo.license.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,30 +37,42 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
+
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionException;
+import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.graph.DependencyVisitor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.RepositoryUtils;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.metadata.ArtifactMetadataSource;
 import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.LegacySupport;
+import org.apache.maven.project.DefaultDependencyResolutionRequest;
+import org.apache.maven.project.DefaultProjectBuildingRequest;
+import org.apache.maven.project.DependencyResolutionException;
+import org.apache.maven.project.DependencyResolutionResult;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectBuilder;
+import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
-import org.apache.maven.project.artifact.InvalidDependencyVersionException;
-import org.apache.maven.project.artifact.MavenMetadataSource;
+import org.apache.maven.project.ProjectBuildingRequest;
+import org.apache.maven.project.ProjectDependenciesResolver;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.codehaus.mojo.license.model.Dependency;
 import org.codehaus.mojo.license.utils.FileUtil;
 import org.codehaus.mojo.license.utils.MojoHelper;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.logging.Logger;
 
 /**
  * Default implementation of the {@link DependenciesTool}.
@@ -66,11 +81,12 @@ import org.codehaus.plexus.logging.Logger;
  * @version $Id$
  * @since 1.0
  */
-@Component( role = DependenciesTool.class, hint = "default" )
+@Named( "default" )
+@Singleton
 public class DefaultDependenciesTool
-    extends AbstractLogEnabled
     implements DependenciesTool
 {
+    private static final Logger log = LoggerFactory.getLogger( DefaultDependenciesTool.class );
 
     /**
      * Message used when an invalid expression pattern is found.
@@ -79,20 +95,18 @@ public class DefaultDependenciesTool
         "The pattern specified by expression <%s> seems to be invalid.";
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
-    /**
-     * Project builder.
-     */
-    @Requirement
-    private MavenProjectBuilder mavenProjectBuilder;
+    @Inject
+    private ProjectBuilder projectBuilder;
 
-    @Requirement
-    private ArtifactFactory artifactFactory;
+    @Inject
+    private ProjectDependenciesResolver dependenciesResolver;
 
-    @Requirement
-    private ArtifactResolver artifactResolver;
+    /** Provides MavenSession access from within a Plexus component. */
+    @Inject
+    private LegacySupport legacySupport;
 
-    @Requirement
-    private ArtifactMetadataSource artifactMetadataSource;
+    @Inject
+    private RepositorySystem repositorySystem;
 
     /**
      * {@inheritDoc}
@@ -160,7 +174,10 @@ public class DefaultDependenciesTool
         SortedMap<String, MavenProject> localCache = new TreeMap<>();
         if (cache != null)
         {
-            localCache.putAll(cache);
+            synchronized ( cache )
+            {
+                localCache.putAll(cache);
+            }
         }
 
         for ( Object o : depArtifacts )
@@ -180,19 +197,15 @@ public class DefaultDependenciesTool
             String scope = artifact.getScope();
             if ( CollectionUtils.isNotEmpty( includedScopes ) && !includedScopes.contains( scope ) )
             {
-
                 // not in included scopes
                 continue;
             }
 
             if ( excludeScopes.contains( scope ) )
             {
-
                 // in excluded scopes
                 continue;
             }
-
-            Logger log = getLogger();
 
             String id = MojoHelper.getArtifactId( artifact );
 
@@ -233,18 +246,31 @@ public class DefaultDependenciesTool
             }
             else
             {
-                // build project
-
+                // build project — lenient settings handle non-standard packaging (e.g. OSGi 'bundle');
+                // allowStubModel=true lets Maven return a stub for missing/broken POMs instead of throwing.
+                MavenSession session = legacySupport.getSession();
+                ProjectBuildingRequest request =
+                    new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
+                request.setRemoteRepositories( remoteRepositories );
+                request.setResolveDependencies( false );
+                request.setProcessPlugins( false );
+                request.setValidationLevel( 0 ); // ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL
                 try
                 {
-                    depMavenProject =
-                        mavenProjectBuilder.buildFromRepository( artifact, remoteRepositories, localRepository, true );
-                    depMavenProject.getArtifact().setScope( artifact.getScope() );
+                    depMavenProject = projectBuilder.build( artifact, true, request ).getProject();
+                    if ( depMavenProject.getArtifact() != null )
+                    {
+                        depMavenProject.getArtifact().setScope( artifact.getScope() );
+                    }
                 }
                 catch ( ProjectBuildingException e )
                 {
-                    log.warn( "Unable to obtain POM for artifact : " + artifact, e );
-                    continue;
+                    log.warn( "Unable to obtain POM for artifact : " + artifact );
+                    depMavenProject = new MavenProject();
+                    depMavenProject.setGroupId( artifact.getGroupId() );
+                    depMavenProject.setArtifactId( artifact.getArtifactId() );
+                    depMavenProject.setVersion( artifact.getVersion() );
+                    depMavenProject.setArtifact( artifact );
                 }
 
                 if ( verbose )
@@ -267,16 +293,15 @@ public class DefaultDependenciesTool
         if (excludeTransitiveDependencies) {
             for (Map.Entry<String, Artifact> entry : includeArtifacts.entrySet()) {
                 List<String> dependencyTrail = entry.getValue().getDependencyTrail();
-
                 boolean remove = false;
-
-                for (int i = 1; i < dependencyTrail.size() - 1; i++) {
-                    if (excludeArtifacts.containsKey(dependencyTrail.get(i))) {
-                        remove = true;
-                        break;
+                if (dependencyTrail != null) {
+                    for (int i = 1; i < dependencyTrail.size() - 1; i++) {
+                        if (excludeArtifacts.containsKey(dependencyTrail.get(i))) {
+                            remove = true;
+                            break;
+                        }
                     }
                 }
-
                 if (remove) {
                     result.remove(MojoHelper.getArtifactId(entry.getValue()));
                 }
@@ -284,7 +309,10 @@ public class DefaultDependenciesTool
         }
 
         if (cache != null) {
-            cache.putAll(result);
+            synchronized ( cache )
+            {
+                cache.putAll(result);
+            }
         }
 
         return result;
@@ -294,73 +322,164 @@ public class DefaultDependenciesTool
      * {@inheritDoc}
      */
     public void loadProjectArtifacts( ArtifactRepository localRepository, List remoteRepositories,
-                                      MavenProject project , Map<String,List<org.apache.maven.model.Dependency>> reactorProjectDependencies )
+                                      MavenProject project,
+                                      Map<String, List<org.apache.maven.model.Dependency>> reactorProjectDependencies )
         throws DependenciesToolException
-
     {
-
-        if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() ) )
+        if ( CollectionUtils.isEmpty( project.getDependencyArtifacts() )
+             || CollectionUtils.isEmpty( project.getArtifacts() ) )
         {
-
-            Set dependenciesArtifacts;
+            MavenSession session = legacySupport.getSession();
+            // ProjectDependenciesResolver resolves reactor modules automatically via
+            // MavenSession#getProjectDependencyGraph(), so the manual reactorProjectDependencies
+            // substitution that was required by the old MavenMetadataSource API is no longer needed.
+            DefaultDependencyResolutionRequest request =
+                new DefaultDependencyResolutionRequest( project, session.getRepositorySession() );
             try
             {
-                List<org.apache.maven.model.Dependency> dependencies = new ArrayList<org.apache.maven.model.Dependency>(project.getDependencies());
-                if (reactorProjectDependencies!=null) {
-
-                    for (org.apache.maven.model.Dependency dependency : new ArrayList<>(dependencies)) {
-                        String id = String.format("%s:%s", dependency.getGroupId(), dependency.getArtifactId());
-                        List<org.apache.maven.model.Dependency> projectDependencies = reactorProjectDependencies.get(id);
-                        if (projectDependencies!=null) {
-                            dependencies.remove(dependency);
-                            dependencies.addAll(projectDependencies);
+                DependencyResolutionResult resolved = dependenciesResolver.resolve( request );
+                Set<Artifact> artifacts;
+                if ( resolved.getDependencies().isEmpty() && !project.getDependencies().isEmpty() )
+                {
+                    // ProjectDependenciesResolver returns empty when called on a reactor sub-module
+                    // from an aggregator mojo before that module enters its own lifecycle.
+                    // Fall back to collecting the dependency graph directly via Aether.
+                    try
+                    {
+                        CollectRequest collectRequest = new CollectRequest();
+                        for ( org.apache.maven.model.Dependency dep : project.getDependencies() )
+                        {
+                            collectRequest.addDependency( RepositoryUtils.toDependency(
+                                dep, session.getRepositorySession().getArtifactTypeRegistry() ) );
                         }
+                        collectRequest.setRepositories(
+                            RepositoryUtils.toRepos( project.getRemoteArtifactRepositories() ) );
+                        CollectResult collectResult = repositorySystem.collectDependencies(
+                            session.getRepositorySession(), collectRequest );
+                        Set<Artifact> collectedArtifacts = new HashSet<>();
+                        Deque<String> trailStack = new ArrayDeque<>();
+                        String rootId = project.getArtifact() != null
+                            ? project.getArtifact().getId()
+                            : project.getGroupId() + ":" + project.getArtifactId() + ":pom:" + project.getVersion();
+                        trailStack.addLast( rootId );
+                        collectResult.getRoot().accept( new DependencyVisitor()
+                        {
+                            @Override
+                            public boolean visitEnter( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    Artifact a = RepositoryUtils.toArtifact( node.getArtifact() );
+                                    a.setScope( node.getDependency().getScope() );
+                                    List<String> trail = new ArrayList<>( trailStack );
+                                    trail.add( a.getId() );
+                                    a.setDependencyTrail( trail );
+                                    collectedArtifacts.add( a );
+                                    trailStack.addLast( a.getId() );
+                                }
+                                return true;
+                            }
+
+                            @Override
+                            public boolean visitLeave( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    trailStack.removeLast();
+                                }
+                                return true;
+                            }
+                        } );
+                        artifacts = collectedArtifacts;
+                    }
+                    catch ( DependencyCollectionException e )
+                    {
+                        log.warn( "Could not collect dependencies for " + project.getId()
+                                              + ": " + e.getMessage() );
+                        artifacts = new HashSet<>();
                     }
                 }
-                dependenciesArtifacts =
-                    MavenMetadataSource.createArtifacts(artifactFactory, dependencies, null, null,
-                                                        project );
+                else
+                {
+                    // Walk the dependency graph tree to build proper dependency trails for
+                    // excludeTransitiveDependencies filtering. Use the flat resolved list
+                    // as the authoritative artifact set (non-conflicted), and apply trails
+                    // from the tree onto them.
+                    Map<String, List<String>> trailMap = new HashMap<>();
+                    DependencyNode graphRoot = resolved.getDependencyGraph();
+                    if ( graphRoot != null )
+                    {
+                        Deque<String> trailStack = new ArrayDeque<>();
+                        String rootId = project.getArtifact() != null
+                            ? project.getArtifact().getId()
+                            : project.getGroupId() + ":" + project.getArtifactId() + ":pom:"
+                                + project.getVersion();
+                        trailStack.addLast( rootId );
+                        graphRoot.accept( new DependencyVisitor()
+                        {
+                            @Override
+                            public boolean visitEnter( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    Artifact a = RepositoryUtils.toArtifact( node.getArtifact() );
+                                    String id = a.getId();
+                                    if ( !trailMap.containsKey( id ) )
+                                    {
+                                        List<String> trail = new ArrayList<>( trailStack );
+                                        trail.add( id );
+                                        trailMap.put( id, trail );
+                                    }
+                                    trailStack.addLast( id );
+                                }
+                                return true;
+                            }
+                            @Override
+                            public boolean visitLeave( DependencyNode node )
+                            {
+                                if ( node.getDependency() != null && node.getArtifact() != null )
+                                {
+                                    trailStack.removeLast();
+                                }
+                                return true;
+                            }
+                        } );
+                    }
+                    artifacts = resolved.getDependencies().stream()
+                        .map( dep -> {
+                            Artifact a = RepositoryUtils.toArtifact( dep.getArtifact() );
+                            a.setScope( dep.getScope() );
+                            List<String> trail = trailMap.get( a.getId() );
+                            if ( trail != null )
+                            {
+                                a.setDependencyTrail( trail );
+                            }
+                            return a;
+                        } )
+                        .collect( Collectors.toSet() );
+                }
+                project.setDependencyArtifacts( artifacts );
+                project.setArtifacts( artifacts );
             }
-            catch ( InvalidDependencyVersionException e )
+            catch ( DependencyResolutionException e )
             {
                 throw new DependenciesToolException( e );
             }
-            project.setDependencyArtifacts( dependenciesArtifacts );
-
-
         }
-
-        Artifact artifact = project.getArtifact();
-
-        ArtifactResolutionResult result;
-        try
-        {
-            result = artifactResolver.resolveTransitively( project.getDependencyArtifacts(), artifact, remoteRepositories,
-                                                           localRepository, artifactMetadataSource );
-        }
-        catch ( ArtifactResolutionException e )
-        {
-            throw new DependenciesToolException( e );
-        }
-        catch ( ArtifactNotFoundException e )
-        {
-            throw new DependenciesToolException( e );
-        }
-
-        project.setArtifacts( result.getArtifacts() );
-
     }
 
     @Override
-    public void writeThirdPartyDependenciesFile(File outputDirectory, String listedDependenciesFilePath, Set<Dependency> listedDependencies) throws IOException {
+    public void writeThirdPartyDependenciesFile( File outputDirectory, String listedDependenciesFilePath,
+                                                 Set<Dependency> listedDependencies ) throws IOException
+    {
         final File thirdPartyDepsFile = FileUtil.getFile(outputDirectory, listedDependenciesFilePath);
 
         if (listedDependencies.isEmpty()) {
-            getLogger().warn("There is no dependencies for write to " + thirdPartyDepsFile);
+            log.warn("There is no dependencies for write to " + thirdPartyDepsFile);
             return;
         }
 
-        getLogger().info( "Writing third-party dependencies file to " + thirdPartyDepsFile );
+        log.info( "Writing third-party dependencies file to " + thirdPartyDepsFile );
         MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValue(thirdPartyDepsFile, listedDependencies);
     }
@@ -375,8 +494,6 @@ public class DefaultDependenciesTool
      */
     protected boolean isIncludable( Artifact project, Pattern includedGroupPattern, Pattern includedArtifactPattern )
     {
-
-        Logger log = getLogger();
 
         // check if the groupId of the project should be included
         if ( includedGroupPattern != null )
@@ -434,9 +551,6 @@ public class DefaultDependenciesTool
      */
     protected boolean isExcludable( Artifact project, Pattern excludedGroupPattern, Pattern excludedArtifactPattern )
     {
-
-        Logger log = getLogger();
-
         // check if the groupId of the project should be included
         if ( excludedGroupPattern != null )
         {

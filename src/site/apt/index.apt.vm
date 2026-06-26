@@ -82,7 +82,7 @@ ${project.name}
   General instructions on how to use the License Plugin can be found on the {{{./usage.html}usage page}}. Some more
   specific use cases are described in the examples given below. Last but not least, users occasionally contribute
   additional examples, tips or errata to the
-  {{{http://docs.codehaus.org/display/MAVENUSER/License+Maven+Plugin}plugin's wiki page}}.
+  {{{https://github.com/octopusden/octopus-license-maven-plugin}project repository}}.
 
   In case you still have questions regarding the plugin's usage, please have a look at the {{{./faq.html}FAQ}} and feel
   free to contact the {{{./mail-lists.html}user mailing list}}. The posts to the mailing list are archived and could
@@ -95,7 +95,7 @@ ${project.name}
   entire debug logs, POMs or most preferably little demo projects attached to the issue are very much appreciated.
   Of course, patches are welcome, too. Contributors can check out the project from our
   {{{./source-repository.html}source repository}} and will find supplementary information in the
-  {{{http://mojo.codehaus.org/development/guidelines.html}development guidelines}}.
+  {{{https://github.com/octopusden/octopus-license-maven-plugin}project repository}}.
 
 * {Examples}
   

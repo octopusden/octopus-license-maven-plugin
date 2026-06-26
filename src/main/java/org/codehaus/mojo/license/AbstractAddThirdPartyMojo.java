@@ -10,8 +10,8 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import javax.inject.Inject;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
 import org.codehaus.mojo.license.api.DefaultThirdPartyHelper;
@@ -453,7 +453,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.0
      */
-    @Component
+    @Inject
     private ThirdPartyTool thirdPartyTool;
 
     /**
@@ -462,7 +462,7 @@ public abstract class AbstractAddThirdPartyMojo
      *
      * @since 1.1
      */
-    @Component
+    @Inject
     DependenciesTool dependenciesTool;
 
     // ----------------------------------------------------------------------

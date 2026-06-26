@@ -28,8 +28,8 @@ import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
 import org.apache.maven.doxia.siterenderer.Renderer;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import javax.inject.Inject;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.artifact.InvalidDependencyVersionException;
@@ -268,7 +268,7 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
      *
      * @since 1.1
      */
-    @Component
+    @Inject
     private Renderer siteRenderer;
 
     /**
@@ -276,7 +276,7 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
      *
      * @since 1.1
      */
-    @Component
+    @Inject
     private I18N i18n;
 
     /**
@@ -284,7 +284,7 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
      *
      * @since 1.1
      */
-    @Component
+    @Inject
     private DependenciesTool dependenciesTool;
 
     /**
@@ -292,7 +292,7 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
      *
      * @since 1.1
      */
-    @Component
+    @Inject
     private ThirdPartyTool thirdPartyTool;
 
     // ----------------------------------------------------------------------
@@ -330,10 +330,6 @@ public abstract class AbstractThirdPartyReportMojo extends AbstractMavenReport i
             throw new MavenReportException( e.getMessage(), e );
         }
         catch ( ProjectBuildingException e )
-        {
-            throw new MavenReportException( e.getMessage(), e );
-        }
-        catch ( InvalidDependencyVersionException e )
         {
             throw new MavenReportException( e.getMessage(), e );
         }
