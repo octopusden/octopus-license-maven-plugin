@@ -241,37 +241,31 @@ public class DefaultDependenciesTool
             }
             else
             {
-                // build project
+                // build project — lenient settings handle non-standard packaging (e.g. OSGi 'bundle');
+                // allowStubModel=true lets Maven return a stub for missing/broken POMs instead of throwing.
                 MavenSession session = legacySupport.getSession();
                 ProjectBuildingRequest request =
                     new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
                 request.setRemoteRepositories( remoteRepositories );
                 request.setResolveDependencies( false );
+                request.setProcessPlugins( false );
+                request.setValidationLevel( 0 ); // ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL
                 try
                 {
-                    depMavenProject = projectBuilder.build( artifact, request ).getProject();
-                    depMavenProject.getArtifact().setScope( artifact.getScope() );
+                    depMavenProject = projectBuilder.build( artifact, true, request ).getProject();
+                    if ( depMavenProject.getArtifact() != null )
+                    {
+                        depMavenProject.getArtifact().setScope( artifact.getScope() );
+                    }
                 }
                 catch ( ProjectBuildingException e )
                 {
                     log.warn( "Unable to obtain POM for artifact : " + artifact );
-                    // Retry with reduced strictness to handle non-standard packaging (e.g. OSGi 'bundle').
-                    try
-                    {
-                        ProjectBuildingRequest lenientRequest = new DefaultProjectBuildingRequest( request );
-                        lenientRequest.setProcessPlugins( false );
-                        lenientRequest.setValidationLevel( 0 ); // ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL
-                        depMavenProject = projectBuilder.build( artifact, lenientRequest ).getProject();
-                        depMavenProject.getArtifact().setScope( artifact.getScope() );
-                    }
-                    catch ( ProjectBuildingException e2 )
-                    {
-                        depMavenProject = new MavenProject();
-                        depMavenProject.setGroupId( artifact.getGroupId() );
-                        depMavenProject.setArtifactId( artifact.getArtifactId() );
-                        depMavenProject.setVersion( artifact.getVersion() );
-                        depMavenProject.setArtifact( artifact );
-                    }
+                    depMavenProject = new MavenProject();
+                    depMavenProject.setGroupId( artifact.getGroupId() );
+                    depMavenProject.setArtifactId( artifact.getArtifactId() );
+                    depMavenProject.setVersion( artifact.getVersion() );
+                    depMavenProject.setArtifact( artifact );
                 }
 
                 if ( verbose )
