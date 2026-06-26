@@ -70,8 +70,8 @@
 | `download-licenses-configured` | ❌ no-xml | `licensesConfigFile` with pre-configured license URLs downloads correct license texts; complex setup not fully ported from upstream |
 | `download-licenses-basic` | ❌ live-url | Downloads actual license files from the internet and asserts downloaded files exist |
 | `download-licenses-configured-alt-location` | ❌ no-xml | Custom `licensesOutputDirectory` and `licensesOutputFile` redirect downloads to custom paths; also asserts `licenses.xml` |
-| `download-licenses-force` | ❌ live-url | Force re-download of already-cached license files |
-| `download-licenses-proxy` | ❌ live-url | Downloads license files through an HTTP proxy |
+| `download-licenses-force` | ❌ not ported | Force re-download of already-cached license files — not ported from upstream mojohaus |
+| `download-licenses-proxy` | ❌ not ported | Downloads license files through an HTTP proxy — not ported from upstream mojohaus |
 | `MLICENSE-4` | ❌ no-xml | `download-licenses` in Maven offline mode (`-o`) using only locally cached artifacts; asserts `licenses.xml` |
 | `MLICENSE-24` | ❌ local-path | Scope-based include/exclude filters; dependency uses `${project.basedir}/LICENSE.txt` as license URL |
 | `ISSUE-40` | ❌ no-xml | Excluded-scope dependencies are absent from `licenses.xml` |
@@ -127,5 +127,5 @@
 | IT | CI | Description |
 |----|----|-------------|
 | `jars-json-list-test-mojo` | ✅ | `jars-json-list` goal produces a JSON file listing all dependency JARs that matches the expected output |
-| `maven-api-compat` | ✅ | Verifies Plexus DI wiring of `ProjectBuilder`, `ProjectDependenciesResolver`, `LegacySupport`, and Aether `RepositorySystem` on each Maven version |
+| `maven-api-compat` | ✅ | Verifies JSR-330 / Sisu wiring of `ProjectBuilder`, `ProjectDependenciesResolver`, `LegacySupport`, and Aether `RepositorySystem` on each Maven version |
 | `MLICENSE-27` | ✅ | (see `update-file-header` above) |

@@ -11,7 +11,7 @@
 
   <name>License Test :: maven-api-compat</name>
   <description>
-    Verifies that Plexus DI correctly wires ProjectBuilder, ProjectDependenciesResolver,
+    Verifies that JSR-330 / Sisu correctly wires ProjectBuilder, ProjectDependenciesResolver,
     LegacySupport and Aether RepositorySystem into DefaultDependenciesTool and
     DefaultThirdPartyTool on the current Maven version. Goal execution is skipped
     (license.skip=true) so no external license registry is required.
@@ -43,7 +43,7 @@
               <goal>add-third-party</goal>
             </goals>
             <configuration>
-              <!-- Skip actual execution — we only verify Plexus DI wiring succeeds -->
+              <!-- Skip actual execution — we only verify JSR-330 / Sisu wiring succeeds -->
               <skip>true</skip>
             </configuration>
           </execution>
