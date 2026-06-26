@@ -162,7 +162,7 @@ Usage
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <executions>
@@ -203,7 +203,7 @@ mvn package
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <executions>

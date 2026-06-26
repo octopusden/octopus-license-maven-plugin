@@ -73,7 +73,7 @@ Root Directories
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
@@ -124,7 +124,7 @@ Includes
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
@@ -169,7 +169,7 @@ Excludes
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
@@ -214,7 +214,7 @@ ExtraExtensions
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
@@ -242,7 +242,7 @@ ExtraFiles
 
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
@@ -282,7 +282,7 @@ Customize the description section
 -------------------------------------------------------------------------------
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${project.version}</version>
         <configuration>
