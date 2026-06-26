@@ -41,10 +41,11 @@ import org.codehaus.mojo.license.utils.FileUtil;
 import org.codehaus.mojo.license.utils.LicenseRegistryClient;
 import org.codehaus.mojo.license.utils.MojoHelper;
 import org.codehaus.mojo.license.utils.SortedProperties;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.logging.Logger;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -83,11 +84,13 @@ import static org.codehaus.mojo.license.api.FreeMarkerHelper.TEMPLATE;
  * @author <a href="mailto:tchemit@codelutin.com">Tony Chemit</a>
  * @version $Id$
  */
-@Component( role = ThirdPartyTool.class, hint = "default" )
+@Named( "default" )
+@Singleton
 public class DefaultThirdPartyTool
-        extends AbstractLogEnabled
         implements ThirdPartyTool
 {
+    private static final Logger log = LoggerFactory.getLogger( DefaultThirdPartyTool.class );
+
     /**
      * Classifier of the third-parties descriptor attached to a maven module.
      */
@@ -116,17 +119,17 @@ public class DefaultThirdPartyTool
     // ----------------------------------------------------------------------
 
     /** Provides MavenSession access from within a Plexus component. */
-    @Requirement
+    @Inject
     private LegacySupport legacySupport;
 
     /** Aether repository system for artifact resolution (replaces the removed ArtifactResolver). */
-    @Requirement
+    @Inject
     private RepositorySystem aetherRepositorySystem;
 
     /**
      * Maven ProjectHelper.
      */
-    @Requirement
+    @Inject
     private MavenProjectHelper projectHelper;
 
     /**
@@ -177,8 +180,6 @@ public class DefaultThirdPartyTool
      */
     public SortedSet<MavenProject> getProjectsWithNoLicense( LicenseMap licenseMap, boolean doLog )
     {
-
-        Logger log = getLogger();
 
         // get unsafe dependencies (says with no license)
         SortedSet<MavenProject> unsafeDependencies = licenseMap.get( LicenseMap.UNKNOWN_LICENSE_MESSAGE );
@@ -240,9 +241,9 @@ public class DefaultThirdPartyTool
             if ( thirdPartyDescriptor != null && thirdPartyDescriptor.exists() && thirdPartyDescriptor.length() > 0 )
             {
 
-                if ( getLogger().isInfoEnabled() )
+                if ( log.isInfoEnabled() )
                 {
-                    getLogger().info( "Detects third party descriptor " + thirdPartyDescriptor );
+                    log.info( "Detects third party descriptor " + thirdPartyDescriptor );
                 }
 
                 // there is a third party file detected form the given dependency
@@ -251,7 +252,7 @@ public class DefaultThirdPartyTool
                 if ( thirdPartyDescriptor.exists() )
                 {
 
-                    getLogger().info( "Load missing file " + thirdPartyDescriptor );
+                    log.info( "Load missing file " + thirdPartyDescriptor );
 
                     // load the missing file
                     unsafeMappings.load( thirdPartyDescriptor );
@@ -332,7 +333,7 @@ public class DefaultThirdPartyTool
         }
         catch ( ArtifactNotFoundException e )
         {
-            getLogger().debug( "ArtifactNotFoundException: Unable to locate third party descriptor: " + e );
+            log.debug( "ArtifactNotFoundException: Unable to locate third party descriptor: " + e );
             return null;
         }
         catch ( ArtifactResolutionException e )
@@ -376,10 +377,10 @@ public class DefaultThirdPartyTool
      */
     public void addLicense( LicenseMap licenseMap, MavenProject project, List<?> licenses )
     {
-        getLogger().debug("Processing " + project.toString());
+        log.debug("Processing " + project.toString());
         if ( Artifact.SCOPE_SYSTEM.equals( project.getArtifact().getScope() ) )
         {
-            getLogger().info("Ignoring " + project.toString() + " as SYSTEM");
+            log.info("Ignoring " + project.toString() + " as SYSTEM");
             // do NOT treat system dependency
             return;
         }
@@ -388,7 +389,7 @@ public class DefaultThirdPartyTool
         {
 
             // no license found for the dependency
-            getLogger().debug("Unknown license for:" + project.toString()) ;
+            log.debug("Unknown license for:" + project.toString()) ;
             licenseMap.put( LicenseMap.UNKNOWN_LICENSE_MESSAGE, project );
             return;
         }
@@ -398,7 +399,7 @@ public class DefaultThirdPartyTool
             String id = MojoHelper.getArtifactId( project.getArtifact() );
             if ( o == null )
             {
-                getLogger().warn( "could not acquire the license for " + id + " " + project.toString());
+                log.warn( "could not acquire the license for " + id + " " + project.toString());
                 continue;
             }
             License license = (License) o;
@@ -408,19 +409,19 @@ public class DefaultThirdPartyTool
 
             if ( StringUtils.isEmpty( license.getName() ) )
             {
-                getLogger().warn( "The license for " + id + " has no name (but exist)" );
+                log.warn( "The license for " + id + " has no name (but exist)" );
                 licenseKey = license.getUrl();
             }
 
             if ( StringUtils.isEmpty( licenseKey ) )
             {
-                getLogger().warn( "No license url defined for " + id );
+                log.warn( "No license url defined for " + id );
                 licenseKey = LicenseMap.UNKNOWN_LICENSE_MESSAGE;
             }
             SonatypeServiceLicenseProcessor licenseProcessor = new SonatypeServiceLicenseProcessor(null, null);
             List<String> licenseList = licenseProcessor.parseLicense(licenseKey);
             for (String licenseId : licenseList) {
-                getLogger().debug(licenseId + " -> " + project);
+                log.debug(licenseId + " -> " + project);
                 licenseMap.put(licenseId, project);
             }
         }
@@ -444,7 +445,7 @@ public class DefaultThirdPartyTool
         {
             if ( isVerbose() )
             {
-                getLogger().warn( "No license [" + mainLicense + "] found, will create it." );
+                log.warn( "No license [" + mainLicense + "] found, will create it." );
             }
             mainSet = new TreeSet<MavenProject>( projectComparator );
         }
@@ -455,13 +456,13 @@ public class DefaultThirdPartyTool
             {
                 if ( isVerbose() )
                 {
-                    getLogger().warn( "No license [" + license + "] found, skip the merge to [" + mainLicense + "]" );
+                    log.warn( "No license [" + license + "] found, skip the merge to [" + mainLicense + "]" );
                 }
                 continue;
             }
             if ( isVerbose() )
             {
-                getLogger().info(
+                log.info(
                         "Merge license [" + license + "] to [" + mainLicense + "] (" + set.size() + " dependencies)." );
             }
             mainSet.addAll( set );
@@ -471,7 +472,7 @@ public class DefaultThirdPartyTool
         if (!mainSet.isEmpty()) {
             licenseMap.put( mainLicense, mainSet );
         } else {
-            getLogger().debug("No artifacts for " + mainLicense + " are found at merge");
+            log.debug("No artifacts for " + mainLicense + " are found at merge");
         }
 
     }
@@ -513,7 +514,7 @@ public class DefaultThirdPartyTool
         {
             // there is some unsafe dependencies
 
-            getLogger().info( "Load missing file " + missingFile );
+            log.info( "Load missing file " + missingFile );
 
             // load the missing file
             unsafeMappings.load( missingFile );
@@ -543,7 +544,7 @@ public class DefaultThirdPartyTool
                 {
 
                     // migrates id to migratedId
-                    getLogger().info( "Migrates [" + id + "] to [" + migratedId + "] in the missing file." );
+                    log.info( "Migrates [" + id + "] to [" + migratedId + "] in the missing file." );
                     Object value = unsafeMappings.get( id );
                     unsafeMappings.remove( id );
                     unsafeMappings.put( migratedId, value );
@@ -557,7 +558,7 @@ public class DefaultThirdPartyTool
             // there is some unknown dependencies in the missing file, remove them
             for ( String id : unknownDependenciesId )
             {
-                getLogger().debug(
+                log.debug(
                         "dependency [" + id + "] does not exist in project, remove it from the missing file." );
                 unsafeMappings.remove( id );
             }
@@ -573,7 +574,7 @@ public class DefaultThirdPartyTool
             MavenProject project = artifactCache.get( id );
             if ( project == null )
             {
-                getLogger().debug( "dependency [" + id + "] does not exist in project." );
+                log.debug( "dependency [" + id + "] does not exist in project." );
                 continue;
             }
 
@@ -608,9 +609,9 @@ public class DefaultThirdPartyTool
             for ( MavenProject project : unsafeDependencies )
             {
                 String id = MojoHelper.getArtifactId( project.getArtifact() );
-                if ( getLogger().isDebugEnabled() )
+                if ( log.isDebugEnabled() )
                 {
-                    getLogger().debug( "dependency [" + id + "] has no license, add it in the missing file." );
+                    log.debug( "dependency [" + id + "] has no license, add it in the missing file." );
                 }
                 unsafeMappings.setProperty( id, "" );
             }
@@ -630,7 +631,7 @@ public class DefaultThirdPartyTool
         {
             // there is some unsafe dependencies
 
-            getLogger().info( "Load override file " + overrideFile );
+            log.info( "Load override file " + overrideFile );
 
             // load the missing file
             overrideMappings.load( overrideFile );
@@ -643,7 +644,7 @@ public class DefaultThirdPartyTool
             List<MavenProject> projects = getProjectFromCustomOverrideFile(id, artifactCache);
 
             if (projects.isEmpty()) {
-                getLogger().warn( "dependency [" + id + "] does not exist in project." );
+                log.warn( "dependency [" + id + "] does not exist in project." );
                 continue;
             }
 
@@ -673,8 +674,8 @@ public class DefaultThirdPartyTool
         SortedProperties overrideMappings = new SortedProperties( encoding );
 
         // there is some unsafe dependencies
-        getLogger().info( "Load overrides from " + customOverrideFile);
-        getLogger().info("Artifact cache " + artifactCache);
+        log.info( "Load overrides from " + customOverrideFile);
+        log.info("Artifact cache " + artifactCache);
         // load the missing file
         try {
             overrideMappings.load(new StringReader(LicenseRegistryClient.getInstance().getFileContent(customOverrideFile)));
@@ -690,7 +691,7 @@ public class DefaultThirdPartyTool
 
             if ( projects.isEmpty() )
             {
-                getLogger().debug( "dependency [" + id + "] not found in project" );
+                log.debug( "dependency [" + id + "] not found in project" );
                 continue;
             }
 
@@ -706,7 +707,7 @@ public class DefaultThirdPartyTool
             }
 
             projects.forEach(project -> {
-                getLogger().info("overriding for " + project + ", " + Arrays.toString(licenses));
+                log.info("overriding for " + project + ", " + Arrays.toString(licenses));
                 licenseMap.removeProject( project );
 
                 // add license in map
@@ -718,11 +719,11 @@ public class DefaultThirdPartyTool
     }
 
     public List<MavenProject> getProjectFromCustomOverrideFile(String id, SortedMap<String, MavenProject> artifactCache) {
-        getLogger().debug("get project for dependency [" + id + "]");
+        log.debug("get project for dependency [" + id + "]");
         String[] overrideProjectGAV = id.split("--");
 
         if (overrideProjectGAV.length != 3) {
-            getLogger().warn("id [" + id + "] format is invalid, no project found");
+            log.warn("id [" + id + "] format is invalid, no project found");
             return Collections.emptyList();
         }
 
@@ -736,15 +737,15 @@ public class DefaultThirdPartyTool
         return artifactCache.entrySet().stream()
                 .filter(entry -> entry.getValue().getGroupId().equals(overrideGroupId) && entry.getValue().getArtifactId().equals(overrideArtifactId))
                 .filter(entry -> {
-                    getLogger().debug("Version check for " + entry.getKey());
-                    getLogger().debug("\tVersion ranges: " + versionIdRanges);
-                    getLogger().debug("\tProject version: " + entry.getValue().getVersion());
+                    log.debug("Version check for " + entry.getKey());
+                    log.debug("\tVersion ranges: " + versionIdRanges);
+                    log.debug("\tProject version: " + entry.getValue().getVersion());
 
                     boolean isVersionValid = versionRangeFactory.create(versionIdRanges).containsVersion(
                             numericVersionFactory.create(entry.getValue().getVersion())
                     );
 
-                    getLogger().debug("\tIs version valid: " + isVersionValid);
+                    log.debug("\tIs version valid: " + isVersionValid);
 
                     return isVersionValid;
                 })
@@ -759,13 +760,12 @@ public class DefaultThirdPartyTool
     public void writeThirdPartyFile( LicenseMap licenseMap, File thirdPartyFile, boolean verbose, String encoding, String lineFormat, boolean custom)
             throws IOException
     {
-        Logger log = getLogger();
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put( "licenseMap", licenseMap.entrySet() );
         properties.put( "dependencyMap", licenseMap.toDependencyMap().entrySet() );
         final String content;
         if (custom) {
-            getLogger().info("Get template from " +  lineFormat);
+            log.info("Get template from " +  lineFormat);
             freeMarkerHelper = FreeMarkerHelper.newHelperFromContent(LicenseRegistryClient.getInstance().getFileContent(lineFormat));
             content = freeMarkerHelper.renderTemplate(TEMPLATE, properties);
         } else {
@@ -791,7 +791,7 @@ public class DefaultThirdPartyTool
 
         // creates the bundled license file
         File bundleTarget = FileUtil.getFile( outputDirectory, bundleThirdPartyPath );
-        getLogger().info( "Writing bundled third-party file to " + bundleTarget );
+        log.info( "Writing bundled third-party file to " + bundleTarget );
         FileUtil.copyFile( thirdPartyFile, bundleTarget );
     }
 
@@ -819,7 +819,7 @@ public class DefaultThirdPartyTool
     {
         File propFile = resolveArtifactFile( dep.getGroupId(), dep.getArtifactId(), dep.getVersion(),
                                              dep.getType(), dep.getClassifier(), localRepository, repositories );
-        getLogger().info(
+        log.info(
                 String.format( "Loading global license map from %s: %s", dep.toString(), propFile.getAbsolutePath() ) );
         SortedProperties props = new SortedProperties( "utf-8" );
         InputStream propStream = null;
@@ -870,12 +870,12 @@ public class DefaultThirdPartyTool
             // we use zero length files to avoid re-resolution (see below)
             if ( result.length() == 0 )
             {
-                getLogger().debug( "Skipped third party descriptor" );
+                log.debug( "Skipped third party descriptor" );
             }
         }
         catch ( ArtifactNotFoundException e )
         {
-            getLogger().debug( "Unable to locate third party files descriptor : " + e );
+            log.debug( "Unable to locate third party files descriptor : " + e );
 
             // we can afford to write an empty descriptor here as we don't expect it to turn up later in the remote
             // repository, because the parent was already released (and snapshots are updated automatically if changed)

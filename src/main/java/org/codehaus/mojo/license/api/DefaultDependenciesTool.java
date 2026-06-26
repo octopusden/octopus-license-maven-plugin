@@ -63,13 +63,16 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectDependenciesResolver;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.codehaus.mojo.license.model.Dependency;
 import org.codehaus.mojo.license.utils.FileUtil;
 import org.codehaus.mojo.license.utils.MojoHelper;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.logging.AbstractLogEnabled;
-import org.codehaus.plexus.logging.Logger;
 
 /**
  * Default implementation of the {@link DependenciesTool}.
@@ -78,11 +81,12 @@ import org.codehaus.plexus.logging.Logger;
  * @version $Id$
  * @since 1.0
  */
-@Component( role = DependenciesTool.class, hint = "default" )
+@Named( "default" )
+@Singleton
 public class DefaultDependenciesTool
-    extends AbstractLogEnabled
     implements DependenciesTool
 {
+    private static final Logger log = LoggerFactory.getLogger( DefaultDependenciesTool.class );
 
     /**
      * Message used when an invalid expression pattern is found.
@@ -91,17 +95,17 @@ public class DefaultDependenciesTool
         "The pattern specified by expression <%s> seems to be invalid.";
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
-    @Requirement
+    @Inject
     private ProjectBuilder projectBuilder;
 
-    @Requirement
+    @Inject
     private ProjectDependenciesResolver dependenciesResolver;
 
     /** Provides MavenSession access from within a Plexus component. */
-    @Requirement
+    @Inject
     private LegacySupport legacySupport;
 
-    @Requirement
+    @Inject
     private RepositorySystem repositorySystem;
 
     /**
@@ -202,8 +206,6 @@ public class DefaultDependenciesTool
                 // in excluded scopes
                 continue;
             }
-
-            Logger log = getLogger();
 
             String id = MojoHelper.getArtifactId( artifact );
 
@@ -392,7 +394,7 @@ public class DefaultDependenciesTool
                     }
                     catch ( DependencyCollectionException e )
                     {
-                        getLogger().warn( "Could not collect dependencies for " + project.getId()
+                        log.warn( "Could not collect dependencies for " + project.getId()
                                               + ": " + e.getMessage() );
                         artifacts = new HashSet<>();
                     }
@@ -473,11 +475,11 @@ public class DefaultDependenciesTool
         final File thirdPartyDepsFile = FileUtil.getFile(outputDirectory, listedDependenciesFilePath);
 
         if (listedDependencies.isEmpty()) {
-            getLogger().warn("There is no dependencies for write to " + thirdPartyDepsFile);
+            log.warn("There is no dependencies for write to " + thirdPartyDepsFile);
             return;
         }
 
-        getLogger().info( "Writing third-party dependencies file to " + thirdPartyDepsFile );
+        log.info( "Writing third-party dependencies file to " + thirdPartyDepsFile );
         MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValue(thirdPartyDepsFile, listedDependencies);
     }
@@ -492,7 +494,6 @@ public class DefaultDependenciesTool
      */
     protected boolean isIncludable( Artifact project, Pattern includedGroupPattern, Pattern includedArtifactPattern )
     {
-        Logger log = getLogger();
 
         // check if the groupId of the project should be included
         if ( includedGroupPattern != null )
@@ -550,8 +551,6 @@ public class DefaultDependenciesTool
      */
     protected boolean isExcludable( Artifact project, Pattern excludedGroupPattern, Pattern excludedArtifactPattern )
     {
-        Logger log = getLogger();
-
         // check if the groupId of the project should be included
         if ( excludedGroupPattern != null )
         {

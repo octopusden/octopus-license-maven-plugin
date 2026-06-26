@@ -6,8 +6,8 @@ import org.apache.maven.model.License;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import javax.inject.Inject;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Proxy;
 import org.codehaus.mojo.license.api.*;
@@ -255,7 +255,7 @@ public abstract class AbstractDownloadLicensesMojo
      *
      * @since 1.0
      */
-    @Component
+    @Inject
     private DependenciesTool dependenciesTool;
 
     /**
@@ -263,7 +263,7 @@ public abstract class AbstractDownloadLicensesMojo
      *
      * @since 1.0
      */
-    @Component
+    @Inject
     private ThirdPartyTool thirdPartyTool;
 
 
