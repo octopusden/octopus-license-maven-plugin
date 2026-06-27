@@ -272,6 +272,7 @@ public class DefaultDependenciesTool
                     depMavenProject.setArtifactId( artifact.getArtifactId() );
                     depMavenProject.setVersion( artifact.getVersion() );
                     depMavenProject.setArtifact( artifact );
+                    depMavenProject.setPackaging( artifact.getType() );
                 }
 
                 if ( verbose )
@@ -459,7 +460,10 @@ public class DefaultDependenciesTool
                         } )
                         .collect( Collectors.toSet() );
                 }
-                project.setDependencyArtifacts( artifacts );
+                Set<Artifact> directArtifacts = artifacts.stream()
+                    .filter( a -> a.getDependencyTrail() != null && a.getDependencyTrail().size() == 2 )
+                    .collect( Collectors.toSet() );
+                project.setDependencyArtifacts( directArtifacts );
                 project.setArtifacts( artifacts );
             }
             catch ( DependencyResolutionException e )

@@ -919,7 +919,9 @@ public class DefaultThirdPartyTool
         {
             org.apache.maven.artifact.Artifact placeholder = new org.apache.maven.artifact.DefaultArtifact(
                     groupId, artifactId, version, null, type, classifier, null );
-            if ( e.getResult() != null && !e.getResult().isResolved() )
+            if ( e.getResult() != null && !e.getResult().isResolved()
+                 && e.getResult().getExceptions().stream()
+                        .anyMatch( ex -> ex instanceof org.eclipse.aether.transfer.ArtifactNotFoundException ) )
             {
                 throw new ArtifactNotFoundException( e.getMessage(), placeholder );
             }

@@ -8,6 +8,8 @@ jobs:
   compatibility:
     name: Java ${{ matrix.java }} / Maven ${{ matrix.maven }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -43,8 +45,12 @@ jobs:
 
       - name: Download Maven ${{ matrix.maven }}
         run: |
-          wget -q https://archive.apache.org/dist/maven/maven-3/${{ matrix.maven }}/binaries/apache-maven-${{ matrix.maven }}-bin.tar.gz
-          tar xf apache-maven-${{ matrix.maven }}-bin.tar.gz -C "$HOME"
+          BASE="https://archive.apache.org/dist/maven/maven-3/${{ matrix.maven }}/binaries/apache-maven-${{ matrix.maven }}-bin.tar.gz"
+          wget -q "$BASE" -O /tmp/apache-maven.tar.gz
+          EXPECTED=$(wget -qO- "${BASE}.sha512" | tr -dc '[:xdigit:]')
+          ACTUAL=$(sha512sum /tmp/apache-maven.tar.gz | awk '{print $1}')
+          [ "$EXPECTED" = "$ACTUAL" ] || { echo "SHA-512 mismatch for Maven ${{ matrix.maven }}"; exit 1; }
+          tar xf /tmp/apache-maven.tar.gz -C "$HOME"
           echo "$HOME/apache-maven-${{ matrix.maven }}/bin" >> "$GITHUB_PATH"
 
       - name: Cache local Maven repository
