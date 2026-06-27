@@ -426,10 +426,11 @@ public class DefaultDependenciesTool
                                 {
                                     Artifact a = RepositoryUtils.toArtifact( node.getArtifact() );
                                     String id = a.getId();
-                                    if ( !trailMap.containsKey( id ) )
+                                    List<String> trail = new ArrayList<>( trailStack );
+                                    trail.add( id );
+                                    List<String> existing = trailMap.get( id );
+                                    if ( existing == null || trail.size() < existing.size() )
                                     {
-                                        List<String> trail = new ArrayList<>( trailStack );
-                                        trail.add( id );
                                         trailMap.put( id, trail );
                                     }
                                     trailStack.addLast( id );

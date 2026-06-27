@@ -9,6 +9,7 @@
 | ❌ live-url | Excluded — requires a live remote URL that is not available in GitHub CI |
 | ❌ no-xml | Excluded — asserts `licenses.xml` which the Octopus fork no longer generates |
 | ❌ local-path | Excluded — dependency declares a `${project.basedir}/...` local-file license URL, not supported via the registry |
+| ❌ not ported | Excluded — test case exists in upstream mojohaus but has not been ported to this Octopus fork |
 
 ---
 

@@ -24,8 +24,8 @@ The plugin provides the following goals:
 |------|-------|-------------|
 | `add-third-party` | `generate-resources` | Generates `THIRD-PARTY.txt` with all 3rd-party dependencies and their licenses |
 | `aggregate-add-third-party` | `generate-resources` | Same as above but aggregates across all modules in a multi-module build |
-| `download-licenses` | `generate-resources` | Downloads license text files (one per license) |
-| `aggregate-download-licenses` | `generate-resources` | Same as above for multi-module builds |
+| `download-licenses` | `package` | Downloads license text files (one per license) |
+| `aggregate-download-licenses` | `package` | Same as above for multi-module builds |
 | `jars-json-list` | `generate-resources` | Produces a JSON file listing all dependency JARs |
 | `update-file-header` | — | Inserts or updates license headers in source files |
 | `update-project-license` | `generate-resources` | Copies the project's license file to the output directory |
