@@ -32,6 +32,7 @@ import javax.inject.Singleton;
  * @author kmorin kmorin@codelutin.com
  * @since 1.0
  */
+@org.codehaus.plexus.component.annotations.Component( role = FileHeaderTransformer.class, hint = "php" )
 @Named( "php" )
 @Singleton
 public class PhpFileHeaderTransformer

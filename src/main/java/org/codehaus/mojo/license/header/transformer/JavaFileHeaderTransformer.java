@@ -31,6 +31,7 @@ import javax.inject.Singleton;
  * @author tchemit dev@tchemit.fr
  * @since 1.0
  */
+@org.codehaus.plexus.component.annotations.Component( role = FileHeaderTransformer.class, hint = "java" )
 @Named( "java" )
 @Singleton
 public class JavaFileHeaderTransformer

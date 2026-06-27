@@ -84,6 +84,7 @@ import static org.codehaus.mojo.license.api.FreeMarkerHelper.TEMPLATE;
  * @author <a href="mailto:tchemit@codelutin.com">Tony Chemit</a>
  * @version $Id$
  */
+@org.codehaus.plexus.component.annotations.Component( role = ThirdPartyTool.class, hint = "default" )
 @Named( "default" )
 @Singleton
 public class DefaultThirdPartyTool

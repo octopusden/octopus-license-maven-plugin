@@ -12,6 +12,7 @@ import javax.inject.Singleton;
  * @author tchemit dev@tchemit.fr
  * @since 1.4
  */
+@org.codehaus.plexus.component.annotations.Component( role = FileHeaderTransformer.class, hint = "mysql" )
 @Named( "mysql" )
 @Singleton
 public class MySqlFileHeaderTransformer

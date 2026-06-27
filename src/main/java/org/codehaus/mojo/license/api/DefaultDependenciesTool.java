@@ -81,6 +81,7 @@ import org.codehaus.mojo.license.utils.MojoHelper;
  * @version $Id$
  * @since 1.0
  */
+@org.codehaus.plexus.component.annotations.Component( role = DependenciesTool.class, hint = "default" )
 @Named( "default" )
 @Singleton
 public class DefaultDependenciesTool
