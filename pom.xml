@@ -511,7 +511,6 @@
                                     <goal>run</goal>
                                 </goals>
                                 <configuration>
-                                    <streamLogs>true</streamLogs>
                                     <extraArtifacts>
                                         <extraArtifact>${project.groupId}:${project.artifactId}:${project.version}:license.properties:test-third-party</extraArtifact>
                                     </extraArtifacts>
