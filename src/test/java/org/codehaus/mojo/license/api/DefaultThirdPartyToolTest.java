@@ -6,8 +6,6 @@ import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.license.model.LicenseMap;
-import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,9 +31,6 @@ public class DefaultThirdPartyToolTest {
     @Before
     public void setUp() throws InvalidVersionSpecificationException {
         thirdPartyTool = new DefaultThirdPartyTool();
-        Logger logger = new ConsoleLogger(ConsoleLogger.LEVEL_INFO, "test");
-        thirdPartyTool.enableLogging(logger);
-
         initializeArtifactCache();
     }
 

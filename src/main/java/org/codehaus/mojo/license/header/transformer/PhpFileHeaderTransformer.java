@@ -22,7 +22,8 @@ package org.codehaus.mojo.license.header.transformer;
  * #L%
  */
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 /**
  * Implementation of {@link FileHeaderTransformer} for PHP format.
@@ -31,7 +32,9 @@ import org.codehaus.plexus.component.annotations.Component;
  * @author kmorin kmorin@codelutin.com
  * @since 1.0
  */
-@Component( role = FileHeaderTransformer.class, hint = "php" )
+@org.codehaus.plexus.component.annotations.Component( role = FileHeaderTransformer.class, hint = "php" )
+@Named( "php" )
+@Singleton
 public class PhpFileHeaderTransformer
     extends AbstractFileHeaderTransformer
 {

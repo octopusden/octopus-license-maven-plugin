@@ -3,7 +3,7 @@
   <pluginExecutions>
     <pluginExecution>
       <pluginExecutionFilter>
-        <groupId>org.codehaus.mojo</groupId>
+        <groupId>org.octopusden.octopus</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <goals>
           <goal>add-third-party</goal>

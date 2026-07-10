@@ -1,20 +1,110 @@
 license-maven-plugin
 ====================
 
-It is a fork of original mojohaus's [license-maven-plugin](https://github.com/mojohaus/license-maven-plugin).
-#### Overview
-The plugin provides the following basic functionality:
-1. generates **THIRD-PARTY.txt** with list of all 3rd-party dependencies that are included in build with their licenses (maven plugin goal *add-thirdparty-properties*)
-2. downloads files with license text (one per each license) (maven plugin goal *download-licenses*)
-3. performs check for forbidden licenses (i.e. licenses that are not in whitelist) <license-registry repository>/licenses-whitelist.txt   
+Fork of [mojohaus/license-maven-plugin](https://github.com/mojohaus/license-maven-plugin) with Octopus-specific extensions: Sonatype OSS Index and JFrog Xray license resolution, a Git-backed license registry, and version-range matching in override files.
 
-By default, all files are placed in *${project.build.directory}/generated-resources/licenses* directory
-**NOTE:** by default these operations are bound to *process-resources* phase
-#### Usage example
+## Compatibility
 
-##### license-maven-plugin configuration
+| Java | Maven 3.6.3 | Maven 3.8.x | Maven 3.9.x |
+|------|-------------|-------------|-------------|
+| 8    | ✅           | ✅           | ✅           |
+| 11+  | ⚠️ (1)      | ⚠️ (1)      | ✅           |
 
-* As a starting template for plugin configuration in pom.xml you can use the following snippet:
+**(1)** All goals work on Java 11+ with Maven < 3.9 **except** `update-file-header` when `licenseResolver=classpath://` is used. Maven 3.9 adds the required `--add-opens` JVM flags automatically; earlier versions do not.
+
+**Minimum requirements:** Java 8, Maven 3.6.3.
+
+---
+
+## Overview
+
+The plugin provides the following goals:
+
+| Goal | Phase | Description |
+|------|-------|-------------|
+| `add-third-party` | `generate-resources` | Generates `THIRD-PARTY.txt` with all 3rd-party dependencies and their licenses |
+| `aggregate-add-third-party` | `generate-resources` | Same as above but aggregates across all modules in a multi-module build |
+| `download-licenses` | `package` | Downloads license text files (one per license) |
+| `aggregate-download-licenses` | `package` | Same as above for multi-module builds |
+| `jars-json-list` | `generate-resources` | Produces a JSON file listing all dependency JARs |
+| `update-file-header` | — | Inserts or updates license headers in source files |
+| `update-project-license` | `generate-resources` | Copies the project's license file to the output directory |
+| `third-party-report` | — | Generates a Maven site report of dependency licenses |
+| `check-file-header` | — | Verifies that source files contain the expected license header |
+| `remove-file-header` | — | Removes license header blocks from source files |
+
+By default, all output files are placed in `${project.build.directory}/generated-resources/licenses`.
+
+---
+
+## License registry
+
+This fork resolves licenses from a Git repository (the **license registry**) rather than from static files.
+
+The registry URL is **required** — the build fails with `IllegalArgumentException` if it is not set. Provide it as a JVM property or environment variable:
+
+```
+-Dlicense-registry.git-repository=<git-url>
+```
+
+or set the environment variable `license-registry.git-repository`.
+
+Any valid Git URL is accepted (HTTPS, SSH, file://). The plugin performs a shallow clone (`--depth=1`) at the start of the build, so `git` must be on the `PATH`. The registry is cloned into a temporary directory and deleted after the build.
+
+**Expected repository structure:**
+
+```
+licenses-whitelist.txt          # one license name per line — allowed licenses
+licenses-hidden.txt             # licenses excluded from output
+thirdparty-licenses.properties  # groupId--artifactId--version = license name overrides
+licenses.properties             # default download URLs per license name
+merges.txt                      # synonym groups; pipe-separated, one line per license
+templates/                      # FreeMarker templates for THIRD-PARTY.txt
+licenses/                       # license text files
+```
+
+---
+
+## Fork-specific features
+
+### Sonatype OSS Index integration
+
+Enabled by default. The plugin queries the [Sonatype OSS Index](https://ossindex.sonatype.org/) API to resolve licenses for dependencies not found in the registry.
+
+```
+-Dlicense.useSonatypeProcessor=false   # disable
+```
+
+### JFrog Xray integration
+
+Disabled by default. When enabled, the plugin queries a JFrog Artifactory/Xray instance for license information.
+
+```
+-Dlicense.useXrayProcessor=true
+-DartifactoryUrl=https://your-artifactory-host
+-DartifactoryAccessToken=<token>
+```
+
+### Version ranges in override files
+
+`thirdparty-licenses.properties` in the registry supports Octopus releng version range syntax so a single entry can cover multiple versions:
+
+```properties
+# exact version
+com.example--foo--1.2.3 = Apache-2.0
+
+# version range (Octopus releng syntax)
+com.example--bar--[2.0,3.0) = MIT
+```
+
+---
+
+## Usage
+
+### Plugin configuration
+
+Add to your module's `pom.xml`:
+
 ```xml
 <plugin>
     <groupId>org.octopusden.octopus</groupId>
@@ -43,17 +133,11 @@ By default, all files are placed in *${project.build.directory}/generated-resour
             </goals>
         </execution>
     </executions>
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.maven.doxia</groupId>
-            <artifactId>doxia-core</artifactId>
-            <version>1.2</version>
-        </dependency>
-    </dependencies>
 </plugin>
 ```
-* Note that license-maven-plugin works only with artifacts specified as dependency (including transitive) therefore ensure that all external libraries are specified as dependencies. 
-* You should enable license-maven-plugin in your module that builds distribution
+
+The plugin works only with artifacts declared as dependencies (including transitive). Enable it in the module that builds your distribution:
+
 ```xml
 <build>
     <plugins>
@@ -61,22 +145,19 @@ By default, all files are placed in *${project.build.directory}/generated-resour
             <groupId>org.octopusden.octopus</groupId>
             <artifactId>license-maven-plugin</artifactId>
         </plugin>
-        ...
     </plugins>
 </build>
 ```
-        
-* Add generated license files into distribution (applied only for explicitly distributed components)
-* The parameter **license-registry.git-repository** is mandatory parameter specifies the URL of the license repository. 
-It can be provided as either an environment variable or as JVM argument, for example ```mvn clean install -Dlicense-registry.git-repository=<repository_url>```
 
-* Example for assembling with maven-war-plugin: 
+### Including generated files in the distribution
+
+**maven-war-plugin:**
+
 ```xml
 <plugin>
     <artifactId>maven-war-plugin</artifactId>
     <configuration>
         <webResources>
-            ...
             <resource>
                 <directory>${license.output.directory}</directory>
                 <targetPath>${license.distribution.path}</targetPath>
@@ -86,8 +167,9 @@ It can be provided as either an environment variable or as JVM argument, for exa
     </configuration>
 </plugin>
 ```
-        
-* Example for assembling with maven-assembly-plugin (add following in assembly descriptor):
+
+**maven-assembly-plugin** (in the assembly descriptor):
+
 ```xml
 <fileSet>
     <includes>
@@ -98,112 +180,114 @@ It can be provided as either an environment variable or as JVM argument, for exa
 </fileSet>
 ```
 
-#### How to run
+---
 
-###### Run license check during build
-By default license plugin is disabled. You should reset *license.skip* property to enable it 
-Execute 
+## Running the plugin
+
+### During a build
+
+By default the plugin is disabled. Enable it with:
+
+```bash
+mvn install -Dlicense.skip=false -Dlicense-registry.git-repository=<git-url>
 ```
-mvn  install -Dlicense.skip=false
+
+Output lands in `${project.build.directory}/generated-resources/licenses`.
+
+If running from an internal network without direct internet access, add a proxy:
+
+```bash
+-Dlicense.proxy=http://proxy.example.com:3128
 ```
-After that you should look at *${project.build.directory}/generated-resources/licenses*
 
-**NOTE** If you run plugin from internal network w/o direct access to Internet then specify also `-Dlicense.proxy=http://proxy:800`
+### Running individual goals from the command line
 
+**Generate THIRD-PARTY.txt — multi-module:**
 
-###### Running separate operations (on developer machine)
-You can run separate operations from command line:
-
-- to generate **THIRD-PARTY.txt** file with list of used licenses
-    For multimodule project:
-```
+```bash
 mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:aggregate-add-third-party \
   -Dlicense.acceptPomPackaging \
   -Dlicense.failOnBlacklist \
-  -Dlicense.failOnMissing
+  -Dlicense.failOnMissing \
+  -Dlicense-registry.git-repository=<git-url>
 ```
 
-    For single module:
-```
+**Generate THIRD-PARTY.txt — single module:**
+
+```bash
 mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:add-third-party \
   -Dlicense.acceptPomPackaging \
   -Dlicense.failOnBlacklist \
-  -Dlicense.failOnMissing
+  -Dlicense.failOnMissing \
+  -Dlicense-registry.git-repository=<git-url>
 ```
 
+**Download license files — multi-module:**
 
-- to download all licenses
-
-For multimodule project: 
-```$xslt
-mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:aggregate-download-licenses
+```bash
+mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:aggregate-download-licenses \
+  -Dlicense-registry.git-repository=<git-url>
 ```
 
-For single module: 
-```$xslt
-mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:download-licenses
+**Download license files — single module:**
+
+```bash
+mvn org.octopusden.octopus:license-maven-plugin:<VERSION>:download-licenses \
+  -Dlicense-registry.git-repository=<git-url>
 ```
 
-#### Parameters information
+---
 
-- `-Dlicense.acceptPomPackaging` fetching licensees projects with `pom` packaging
-- `-Dlicense.failOnBlacklist` let task fail on not acceptable licenses
-- `-Dlicense.failOnMissing` let task fail on dependencies with no licenses
-- `-Dlicense.skip` disables\enables license plugin
-- `-Dlicense.proxy` url to proxy if there is no direct access to WWW (example `http://proxy:800`)
+## Key parameters
 
+| Parameter | Property | Default | Description |
+|-----------|----------|---------|-------------|
+| `acceptPomPackaging` | `license.acceptPomPackaging` | `false` | Include POM-packaged modules |
+| `failOnBlacklist` | `license.failOnBlacklist` | `false` | Fail on forbidden licenses |
+| `failOnMissing` | `license.failOnMissing` | `false` | Fail on dependencies with no license |
+| `skip` | `license.skip` | `true` | Disable the plugin entirely |
+| `proxy` | `license.proxy` | — | HTTP proxy URL for license downloads |
+| `useSonatypeProcessor` | `license.useSonatypeProcessor` | `true` | Query Sonatype OSS Index for licenses |
+| `useXrayProcessor` | `license.useXrayProcessor` | `false` | Query JFrog Xray for licenses |
+| `excludedScopes` | `license.excludedScopes` | — | Comma-separated scopes to skip |
+| `excludedGroups` | `license.excludedGroups` | — | Regex of groupIds to exclude |
+| `includedGroups` | `license.includedGroups` | — | Regex of groupIds to include |
 
-#### Result processing
-If your build successfully passes, you are most likely clean. Congratulations!
+---
 
-If your build fails with message like this:
-``` 
-[INFO] Included licenses (whitelist): [BSD, CDDL, Eclipse Public License - v 1.0, Public Domain, The Apache Software License, Version 2.0]
-[ERROR] There is 1 forbidden licenses used:
-[ERROR] License MIT used by 2 dependencies:
-...
-[INFO] ------------------------------------------------------------------------
-[INFO] Reactor Summary:
-[INFO]
-[INFO] My parent ........................... SUCCESS [1.016s]
-[INFO] My module 1 ......................... FAILURE [3.063s]
-[INFO] My module 2 ......................... SKIPPED
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-```
+## Interpreting build failures
 
-You should manually check all rejected libraries.
-There are two possible failures in verification process:
+### License cannot be resolved
 
-##### License cannot be resolved for particular library. 
-In this case you'll see message like this: "License Unknown used by <N> dependencies..."
 ```
 [WARNING] License "Unknown license" used by 1 dependencies:
--xdb6 (com.oracle:xdb6:10.2.0.4 - no url defined)
-```
-In this case you should manually determine license for this library and manually register it in
-<license-registry repository>/thirdparty-licenses.properties. 
-Another option is to replace library with another one having suitable license.
-##### License is resolved but is not added to whitelist. 
-In this case you'll see message like this: 
-"License <licensename> used by <N> dependencies..."
-Example:
-```
-   [WARNING] License "ICU License" used by 1 dependencies:
-    -ICU4J (com.ibm.icu:icu4j:57.1 - http://icu-project.org/)
+  - xdb6 (com.oracle:xdb6:10.2.0.4 - no url defined)
 ```
 
-1. If the name of the license differs only in spelling from already registered one, then add it to the list of synonyms
-in <license-registry repository>/merges.txt in '|'-separated string (one line per each license)
-2. In case of not supported license, do one of the following:
+Determine the correct license and add an entry to `thirdparty-licenses.properties` in the registry, or replace the library.
 
-* Replace library with another one having suitable license.
-* Decide if this license is indeed prohibited. If not, whitelist this license.
+### License is resolved but not whitelisted
 
-#### Third party licenses repository
+```
+[WARNING] License "ICU License" used by 1 dependencies:
+  - ICU4J (com.ibm.icu:icu4j:57.1 - http://icu-project.org/)
+```
 
-Default URLs for licenses are specified <license-registry repository>/licenses.properties.
+Options:
+1. If the name differs only in spelling from a known license, add a synonym line to `merges.txt`.
+2. If the license is acceptable, add it to `licenses-whitelist.txt`.
+3. Otherwise, replace the library.
 
-#### Registering license synonyms
-Different name for same license can be specified in <license-registry repository>/merges.txt
-in '|'-separated string (one string per each license)
+---
+
+## Registry file reference
+
+| File | Purpose |
+|------|---------|
+| `licenses-whitelist.txt` | One license name per line — licenses that are allowed |
+| `licenses-hidden.txt` | Licenses excluded from output |
+| `thirdparty-licenses.properties` | `groupId--artifactId--version = license name` overrides; supports version ranges |
+| `licenses.properties` | Default download URLs: `license name = URL` |
+| `merges.txt` | Pipe-separated synonym groups, one line per license |
+| `templates/` | FreeMarker templates for THIRD-PARTY.txt layout |
+| `licenses/` | License text files referenced by download goals |
