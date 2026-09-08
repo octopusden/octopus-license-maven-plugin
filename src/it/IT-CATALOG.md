@@ -24,6 +24,7 @@
 | `add-third-party-global-db` | ✅ | License resolved from a global-db artifact is written into a child module's THIRD-PARTY.txt |
 | `add-third-party-merge-licenses` | ✅ | Multiple license name variants (e.g. "Apache License 2.0", "Apache Public License 2.0") are merged to a single canonical name |
 | `add-third-party-missing-pom` | ✅ | Dependency whose POM is absent is listed as "Unknown license" instead of failing the build |
+| `add-third-party-reactor-skip` | ✅ | `add-third-party` on a `pom` aggregator with `acceptPomPackaging=true` skips reactor modules and only lists real third-party dependencies |
 
 ---
 

@@ -181,6 +181,9 @@ public class DefaultDependenciesTool
             }
         }
 
+        MavenSession session = legacySupport.getSession();
+        Set<String> reactorGavs = getReactorGavs();
+
         for ( Object o : depArtifacts )
         {
             Artifact artifact = (Artifact) o;
@@ -209,6 +212,16 @@ public class DefaultDependenciesTool
             }
 
             String id = MojoHelper.getArtifactId( artifact );
+
+            if ( reactorGavs.contains( gavOf( artifact ) ) )
+            {
+                // Reactor modules belong to the current build, not to third-party dependencies.
+                if ( verbose )
+                {
+                    log.info( "skip reactor artifact " + id );
+                }
+                continue;
+            }
 
             if ( verbose )
             {
@@ -247,12 +260,12 @@ public class DefaultDependenciesTool
             }
             else
             {
-                // build project — lenient settings handle non-standard packaging (e.g. OSGi 'bundle');
-                // allowStubModel=true lets Maven return a stub for missing/broken POMs instead of throwing.
-                MavenSession session = legacySupport.getSession();
-                ProjectBuildingRequest request =
-                    new DefaultProjectBuildingRequest( session.getProjectBuildingRequest() );
+                // Build a fresh request instead of reusing the session request: the latter carries
+                // the current reactor project, so ProjectBuilder would return it for every artifact.
+                ProjectBuildingRequest request = new DefaultProjectBuildingRequest();
+                request.setLocalRepository( session.getLocalRepository() );
                 request.setRemoteRepositories( remoteRepositories );
+                request.setRepositorySession( session.getRepositorySession() );
                 request.setResolveDependencies( false );
                 request.setProcessPlugins( false );
                 request.setValidationLevel( 0 ); // ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL
@@ -266,13 +279,8 @@ public class DefaultDependenciesTool
                 }
                 catch ( ProjectBuildingException e )
                 {
-                    log.warn( "Unable to obtain POM for artifact : " + artifact );
-                    depMavenProject = new MavenProject();
-                    depMavenProject.setGroupId( artifact.getGroupId() );
-                    depMavenProject.setArtifactId( artifact.getArtifactId() );
-                    depMavenProject.setVersion( artifact.getVersion() );
-                    depMavenProject.setArtifact( artifact );
-                    depMavenProject.setPackaging( artifact.getType() );
+                    log.warn( "Unable to obtain POM for artifact : " + artifact, e );
+                    continue;
                 }
 
                 if ( verbose )
@@ -461,6 +469,13 @@ public class DefaultDependenciesTool
                         } )
                         .collect( Collectors.toSet() );
                 }
+                // Exclude reactor modules from the artifact set: they belong to the current
+                // build and must not be treated as third-party dependencies.
+                Set<String> reactorGavs = getReactorGavs();
+                artifacts = artifacts.stream()
+                    .filter( a -> !reactorGavs.contains( gavOf( a ) ) )
+                    .collect( Collectors.toSet() );
+
                 Set<Artifact> directArtifacts = artifacts.stream()
                     .filter( a -> a.getDependencyTrail() != null && a.getDependencyTrail().size() == 2 )
                     .collect( Collectors.toSet() );
@@ -472,6 +487,31 @@ public class DefaultDependenciesTool
                 throw new DependenciesToolException( e );
             }
         }
+    }
+
+    /**
+     * @return the {@code groupId:artifactId:version} coordinates of the artifacts belonging to the current reactor.
+     */
+    private Set<String> getReactorGavs()
+    {
+        Set<String> reactorGavs = new HashSet<>();
+        MavenSession session = legacySupport.getSession();
+        if ( session != null && session.getProjects() != null )
+        {
+            for ( MavenProject p : session.getProjects() )
+            {
+                reactorGavs.add( p.getGroupId() + ":" + p.getArtifactId() + ":" + p.getVersion() );
+            }
+        }
+        return reactorGavs;
+    }
+
+    /**
+     * @return the {@code groupId:artifactId:version} coordinates of the given artifact.
+     */
+    private String gavOf( Artifact artifact )
+    {
+        return artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
     }
 
     @Override

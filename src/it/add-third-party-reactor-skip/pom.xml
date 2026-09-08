@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.codehaus.mojo.license.test</groupId>
+  <artifactId>test-add-third-party-reactor-skip</artifactId>
+  <version>@pom.version@</version>
+  <packaging>pom</packaging>
+
+  <name>License Test :: add-third-party reactor module skip</name>
+
+  <modules>
+    <module>child</module>
+  </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.mojo.license.test</groupId>
+      <artifactId>test-add-third-party-reactor-skip-child</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.octopusden.octopus</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <configuration>
+          <acceptPomPackaging>true</acceptPomPackaging>
+          <includeTransitiveDependencies>true</includeTransitiveDependencies>
+          <failOnMissing>true</failOnMissing>
+          <useMissingFile>false</useMissingFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>license-check</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+            <phase>generate-resources</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.octopusden.octopus</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>@pom.version@</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
