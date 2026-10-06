@@ -1,7 +1,8 @@
 name: Compatibility Matrix
 
+# Pull requests run this through merge-gate.yml, not on their own.
 on:
-  pull_request:
+  workflow_call:
   workflow_dispatch:
 
 jobs:
