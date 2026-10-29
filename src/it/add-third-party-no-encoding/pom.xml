@@ -34,6 +34,8 @@
   <name>License Test :: add-third-party-no-encoding</name>
 
   <properties>
+    <!-- blank on purpose: makes the no-encoding case explicit, Maven 3.10+ defaults it to UTF-8 -->
+    <project.build.sourceEncoding></project.build.sourceEncoding>
     <license.generateBundle>true</license.generateBundle>
     <license.verbose>true</license.verbose>
   </properties>
