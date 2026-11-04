@@ -29,7 +29,7 @@
     <parent>
         <groupId>org.octopusden.octopus</groupId>
         <artifactId>octopus-parent</artifactId>
-        <version>2.0.10</version>
+        <version>2.3.2</version>
     </parent>
 
     <artifactId>license-maven-plugin</artifactId>
@@ -83,6 +83,12 @@
             <name>Cedric Pronzato</name>
         </contributor>
     </contributors>
+
+    <scm>
+        <connection>scm:git:git://github.com/octopusden/octopus-license-maven-plugin.git</connection>
+        <developerConnection>scm:git:ssh://github.com:octopusden/octopus-license-maven-plugin.git</developerConnection>
+        <url>https://github.com/octopusden/octopus-license-maven-plugin/tree/octopus</url>
+    </scm>
 
     <prerequisites>
         <maven>${mavenVersion}</maven>
