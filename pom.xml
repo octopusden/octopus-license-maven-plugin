@@ -85,8 +85,8 @@
     </contributors>
 
     <scm>
-        <connection>scm:git:git://github.com/octopusden/octopus-license-maven-plugin.git</connection>
-        <developerConnection>scm:git:ssh://github.com:octopusden/octopus-license-maven-plugin.git</developerConnection>
+        <connection>scm:git:https://github.com/octopusden/octopus-license-maven-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/octopusden/octopus-license-maven-plugin.git</developerConnection>
         <url>https://github.com/octopusden/octopus-license-maven-plugin/tree/octopus</url>
     </scm>
 
