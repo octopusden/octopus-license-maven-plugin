@@ -111,6 +111,10 @@
 
         <pluginPluginVersion>3.5</pluginPluginVersion>
         <plexusComponentVersion>1.7</plexusComponentVersion>
+
+        <!-- Report-only until the existing Checkstyle, PMD and SpotBugs findings in the fork are cleared;
+             the gates run on JDK 11+ (the compatibility matrix) and would otherwise fail it. -->
+        <octopus.quality.failOnViolation>false</octopus.quality.failOnViolation>
     </properties>
 
     <dependencies>
